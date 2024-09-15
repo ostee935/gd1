@@ -17,7 +17,7 @@ var myObstacles = [];
 var myScore;
 
 function startGame() {
-    myGamePiece = new component(30, 30, "blue", 10, 185);
+    myGamePiece = new component(16, 16, "images/player.png", 10, 185);
     myGamePiece.gravity = 0;
     myGamePiece.acceleration = 0;
     myScore = new component("30px", "Consolas", "black", 280, 40, "text");
@@ -39,10 +39,13 @@ var myGameArea = {
     }
 }
 
-function component(width, height, color, x, y, type) {
+function component(width, height, imageSrc, x, y, type) {
     this.type = type;
     this.width = width;
     this.height = height;
+    this.imageSrc = imageSrc; // Path to the image
+    this.image = new Image();
+    this.image.src = this.imageSrc; // Load the image
     this.speedX = 0;
     this.speedY = 0;
     this.x = x;
@@ -54,13 +57,14 @@ function component(width, height, color, x, y, type) {
         var ctx = myGameArea.context;
         if (this.type === "text") {
             ctx.font = this.width + " " + this.height;
-            ctx.fillStyle = color;
+            ctx.fillStyle = this.color;
             ctx.fillText(this.text, this.x, this.y);
         } else {
-            ctx.fillStyle = color;
-            ctx.fillRect(this.x, this.y, this.width, this.height);
+            ctx.drawImage(this.image, this.x, this.y, this.width, this.height); // Draw the image
         }
     }
+}
+
     this.newPos = function() {
         this.gravitySpeed += this.gravity;
         this.x += this.speedX;
@@ -103,6 +107,10 @@ function updateGameArea() {
     for (var i = 0; i < myObstacles.length; i++) {
         if (myGamePiece.crashWith(myObstacles[i])) {
             clearInterval(myGameArea.interval);
+            myGameArea.context.font = "40px Consolas";
+            myGameArea.context.fillStyle = "red";
+            myGameArea.context.textAlign = "center";
+            myGameArea.context.fillText("Game Over", myGameArea.canvas.width / 2, myGameArea.canvas.height / 2);
             return;
         }
     }
@@ -126,7 +134,7 @@ function updateGameArea() {
     myObstacles = myObstacles.filter(function(obstacle) {
         return obstacle.x + obstacle.width > 0;
     });
-    myScore.text = "SCORE: " + myGameArea.frameNo;
+    myScore.text = "Score: " + myGameArea.frameNo;
     myScore.update();
 	
     myGamePiece.gravity = 0.1 + myGamePiece.acceleration;
