@@ -141,19 +141,19 @@ function updateGameArea() {
     }
     myGameArea.clear();
     myGameArea.frameNo++;
-    if (myGameArea.frameNo === 1 || everyinterval(70)) {
+    if (myGameArea.frameNo === 1 || everyinterval(50)) {
         x = myGameArea.canvas.width;
-        minHeight = 20;
-        maxHeight = 200;
+        minHeight = 500;
+        maxHeight = 50;
         height = Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
-        minGap = 50;
-        maxGap = 200;
+        minGap = 100;
+        maxGap = 50;
         gap = Math.floor(Math.random() * (maxGap - minGap + 1) + minGap);
-        myObstacles.push(new component(10, height, "green", x, 0));
-        myObstacles.push(new component(10, x - height - gap, "green", x, height + gap));
+        myObstacles.push(new component(20, 320, "green", x, (0 - height)));
+        myObstacles.push(new component(20, 320, "green", x, (400 - height) + gap ));
     }
     for (var i = 0; i < myObstacles.length; i++) {
-        myObstacles[i].x += -5;
+        myObstacles[i].x += -10;
         myObstacles[i].update();
     }
     myObstacles = myObstacles.filter(function(obstacle) {
