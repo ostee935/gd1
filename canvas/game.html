@@ -19,6 +19,7 @@ var myScore;
 function startGame() {
     myGamePiece = new component(30, 30, "blue", 10, 185);
     myGamePiece.gravity = 0;
+    myGamePiece.acceleration = 0;
     myScore = new component("30px", "Consolas", "black", 280, 40, "text");
     myGameArea.start();
 }
@@ -46,7 +47,7 @@ function component(width, height, color, x, y, type) {
     this.speedY = 0;
     this.x = x;
     this.y = y;
-    this.gravity = 0;
+    this.gravity = 0.8;
     this.gravitySpeed = 0;
     this.text = "";
     this.update = function() {
@@ -75,8 +76,9 @@ function component(width, height, color, x, y, type) {
         }
     }
     this.hitTop = function() {
-        if (this.y < 0) {
-            this.y = 0;
+    var top = 0;
+        if (this.y < top) {
+            this.y = top;
             this.gravitySpeed = 0;
         }
     }
@@ -106,7 +108,7 @@ function updateGameArea() {
     }
     myGameArea.clear();
     myGameArea.frameNo++;
-    if (myGameArea.frameNo === 100000 || everyinterval(7000000)) {
+    if (myGameArea.frameNo === 1 || everyinterval(70)) {
         x = myGameArea.canvas.width;
         minHeight = 20;
         maxHeight = 200;
@@ -126,7 +128,9 @@ function updateGameArea() {
     });
     myScore.text = "SCORE: " + myGameArea.frameNo;
     myScore.update();
-    
+	
+    myGamePiece.gravity = 0.1 + myGamePiece.acceleration;
+
     myGamePiece.newPos();
     myGamePiece.update();
 }
@@ -138,23 +142,41 @@ function everyinterval(n) {
 }
 
 
+// Add these variables at the top to keep track of key states
+var keys = {};
+
+// Add event listeners for keydown and keyup
+window.addEventListener('keydown', function(e) {
+    keys[e.code] = true;
+    updateAcceleration();
+});
+
+window.addEventListener('keyup', function(e) {
+    keys[e.code] = false;
+    updateAcceleration();
+});
+
+// Function to update acceleration based on key presses
+function updateAcceleration() {
+    if (keys['ArrowUp']) {
+        accelerate(-0.5); // Accelerate up when the up arrow is pressed
+    } else if (keys['ArrowDown']) {
+        accelerate(0.25); // Decelerate when the down arrow is pressed
+    } else {
+        accelerate(0); // No acceleration when neither key is pressed
+    }
+}
+
+// Call updateAcceleration initially to set the default state
+updateAcceleration();
+
 function accelerate(n) {
-    myGamePiece.gravity = this.gravity + n;
+    myGamePiece.acceleration = n;
     }
 
-/*
-function accelerate(n) {
-	if (myGamePiece.y > 185) {
-    	myGamePiece.gravity = this.gravity + n;
-    } else {
-    	myGamePiece.gravity = -this.gravity + n;
-	}
-}
-*/
 </script>
 <br>
-<button onmousedown="accelerate(-0.5)" onmouseup="accelerate(0.25)">ACCELERATE</button>
-<p>Use the ACCELERATE button to stay in the air</p>
+<p>Use the Up and Down arrow keys to control movement.</p>
 <p>How long can you stay alive?</p>
 </body>
 </html>
