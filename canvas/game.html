@@ -17,10 +17,10 @@ var myObstacles = [];
 var myScore;
 
 function startGame() {
-    myGamePiece = new component(16, 16, "images/player.png", 10, 185);
+    myGamePiece = new component(16, 16, "images/player.png", 10, 185, "image");
     myGamePiece.gravity = 0;
     myGamePiece.acceleration = 0;
-    myScore = new component("30px", "Consolas", "black", 280, 40, "text");
+    myScore = new component("30px", "Consolas", "black", 400, 390, "text");
     myGameArea.start();
 }
 
@@ -39,13 +39,25 @@ var myGameArea = {
     }
 }
 
-function component(width, height, imageSrc, x, y, type) {
+function component(width, height, colorOrImageSrc, x, y, type) {
     this.type = type;
     this.width = width;
     this.height = height;
-    this.imageSrc = imageSrc; // Path to the image
-    this.image = new Image();
-    this.image.src = this.imageSrc; // Load the image
+    
+    // If type is "image", initialize the image
+    if (type === "image") {
+        this.imageSrc = colorOrImageSrc; // Use colorOrImageSrc for image path
+        this.image = new Image();
+        this.image.src = this.imageSrc;
+        this.imageLoaded = false;
+        var self = this;
+        this.image.onload = function() {
+            self.imageLoaded = true; // Set flag when image is loaded
+        };
+    } else {
+        this.color = colorOrImageSrc; // Use colorOrImageSrc for color
+    }
+
     this.speedX = 0;
     this.speedY = 0;
     this.x = x;
@@ -53,17 +65,26 @@ function component(width, height, imageSrc, x, y, type) {
     this.gravity = 0.8;
     this.gravitySpeed = 0;
     this.text = "";
+
     this.update = function() {
         var ctx = myGameArea.context;
         if (this.type === "text") {
             ctx.font = this.width + " " + this.height;
             ctx.fillStyle = this.color;
             ctx.fillText(this.text, this.x, this.y);
+        } else if (this.type === "image") {
+            if (this.imageLoaded) {
+                ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
+            } else {
+                // Draw a placeholder if the image isn't loaded yet
+                ctx.fillStyle = "red";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
         } else {
-            ctx.drawImage(this.image, this.x, this.y, this.width, this.height); // Draw the image
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
         }
     }
-}
 
     this.newPos = function() {
         this.gravitySpeed += this.gravity;
@@ -72,6 +93,7 @@ function component(width, height, imageSrc, x, y, type) {
         this.hitBottom();
         this.hitTop();
     }
+
     this.hitBottom = function() {
         var bottom = myGameArea.canvas.height - this.height;
         if (this.y > bottom) {
@@ -79,13 +101,15 @@ function component(width, height, imageSrc, x, y, type) {
             this.gravitySpeed = 0;
         }
     }
+
     this.hitTop = function() {
-    var top = 0;
+        var top = 0;
         if (this.y < top) {
             this.y = top;
             this.gravitySpeed = 0;
         }
     }
+
     this.crashWith = function(otherobj) {
         var myleft = this.x;
         var myright = this.x + this.width;
@@ -98,6 +122,7 @@ function component(width, height, imageSrc, x, y, type) {
         return !(mybottom < othertop || mytop > otherbottom || myright < otherleft || myleft > otherright);
     }
 }
+
 
 
 var lastTime = 0;
