@@ -10,13 +10,28 @@ canvas {
 </style>
 </head>
 <body onload="startGame()">
-<script>
+<audio id="music" src="sounds/music.mp3" loop></audio>
+<audio id="propellor" src="sounds/propellor.wav" loop></audio>
+<audio id="zap" src="sounds/zap.wav"></audio>
 
+<script>
 var myGamePiece;
 var myObstacles = [];
 var myScore;
 
 function startGame() {
+    // Start playing background music and propellor sound
+    var music = document.getElementById("music");
+    var propellor = document.getElementById("propellor");
+
+    music.play().catch(function(error) {
+        console.log("Error playing music:", error);
+    });
+
+    propellor.play().catch(function(error) {
+        console.log("Error playing propellor sound:", error);
+    });
+
     myGamePiece = new component(32, 32, "images/player.png", 10, 185, "image");
     myGamePiece.gravity = 0;
     myGamePiece.acceleration = 0;
@@ -33,7 +48,7 @@ var myGameArea = {
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.frameNo = 0;
         this.interval = setInterval(updateGameArea, 20);
-        },
+    },
     clear : function() {
         this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
@@ -44,18 +59,17 @@ function component(width, height, colorOrImageSrc, x, y, type) {
     this.width = width;
     this.height = height;
     
-    // If type is "image", initialize the image
     if (type === "image") {
-        this.imageSrc = colorOrImageSrc; // Use colorOrImageSrc for image path
+        this.imageSrc = colorOrImageSrc;
         this.image = new Image();
         this.image.src = this.imageSrc;
         this.imageLoaded = false;
         var self = this;
         this.image.onload = function() {
-            self.imageLoaded = true; // Set flag when image is loaded
+            self.imageLoaded = true;
         };
     } else {
-        this.color = colorOrImageSrc; // Use colorOrImageSrc for color
+        this.color = colorOrImageSrc;
     }
 
     this.speedX = 0;
@@ -76,7 +90,6 @@ function component(width, height, colorOrImageSrc, x, y, type) {
             if (this.imageLoaded) {
                 ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
             } else {
-                // Draw a placeholder if the image isn't loaded yet
                 ctx.fillStyle = "red";
                 ctx.fillRect(this.x, this.y, this.width, this.height);
             }
@@ -123,8 +136,6 @@ function component(width, height, colorOrImageSrc, x, y, type) {
     }
 }
 
-
-
 var lastTime = 0;
 
 function updateGameArea() {
@@ -132,6 +143,13 @@ function updateGameArea() {
     for (var i = 0; i < myObstacles.length; i++) {
         if (myGamePiece.crashWith(myObstacles[i])) {
             clearInterval(myGameArea.interval);
+
+            // Play game over sound
+            var zap = document.getElementById("zap");
+            zap.play().catch(function(error) {
+                console.log("Error playing zap sound:", error);
+            });
+
             myGameArea.context.font = "40px Consolas";
             myGameArea.context.fillStyle = "red";
             myGameArea.context.textAlign = "center";
@@ -168,17 +186,13 @@ function updateGameArea() {
     myGamePiece.update();
 }
 
-
 function everyinterval(n) {
     if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
     return false;
 }
 
-
-// Add these variables at the top to keep track of key states
 var keys = {};
 
-// Add event listeners for keydown and keyup
 window.addEventListener('keydown', function(e) {
     keys[e.code] = true;
     updateAcceleration();
@@ -189,24 +203,21 @@ window.addEventListener('keyup', function(e) {
     updateAcceleration();
 });
 
-// Function to update acceleration based on key presses
 function updateAcceleration() {
     if (keys['ArrowUp']) {
-        accelerate(-0.5); // Accelerate up when the up arrow is pressed
+        accelerate(-0.5);
     } else if (keys['ArrowDown']) {
-        accelerate(0.25); // Decelerate when the down arrow is pressed
+        accelerate(0.25);
     } else {
-        accelerate(0); // No acceleration when neither key is pressed
+        accelerate(0);
     }
 }
 
-// Call updateAcceleration initially to set the default state
 updateAcceleration();
 
 function accelerate(n) {
     myGamePiece.acceleration = n;
-    }
-
+}
 </script>
 <br>
 <p>Use the Up and Down arrow keys to control movement.</p>
