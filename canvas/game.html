@@ -14,8 +14,6 @@ canvas {
 <audio id="propellor" src="sounds/propellor.wav" loop></audio>
 <audio id="zap" src="sounds/zap.wav"></audio>
 
-<button onclick="startGame()">Start Game</button>
-
 <script>
 var myGamePiece;
 var myObstacles = [];
@@ -34,27 +32,50 @@ function startGame() {
         console.log("Error playing propellor sound:", error);
     });
 
+    // Clear existing interval if it exists
+    if (myGameArea.interval) {
+        clearInterval(myGameArea.interval);
+    }
+
+    // Reset game state
+    myObstacles = [];
+    myGameArea.frameNo = 0;
     myGamePiece = new component(32, 32, "images/player.png", 10, 185, "image");
     myGamePiece.gravity = 0;
     myGamePiece.acceleration = 0;
     myScore = new component("30px", "Consolas", "black", 400, 390, "text");
+    
+    // Restart the game loop
     myGameArea.start();
 }
 
+
 var myGameArea = {
-    canvas : document.createElement("canvas"),
-    start : function() {
+    canvas: document.createElement("canvas"),
+    start: function () {
         this.canvas.width = 600;
         this.canvas.height = 400;
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.frameNo = 0;
+        this.backgroundImage = new Image();
+        this.backgroundImage.src = "images/background.png"; // Path to your background image
+        this.backgroundImageLoaded = false;
+        var self = this;
+        this.backgroundImage.onload = function () {
+            self.backgroundImageLoaded = true;
+        };
         this.interval = setInterval(updateGameArea, 20);
     },
-    clear : function() {
-        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    clear: function () {
+        if (this.backgroundImageLoaded) {
+            this.context.drawImage(this.backgroundImage, 0, 0, this.canvas.width, this.canvas.height);
+        } else {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        }
     }
 }
+
 
 function component(width, height, colorOrImageSrc, x, y, type) {
     this.type = type;
@@ -146,6 +167,11 @@ function updateGameArea() {
         if (myGamePiece.crashWith(myObstacles[i])) {
             clearInterval(myGameArea.interval);
 
+
+	var propellor = document.getElementById("propellor");
+	propellor.pause();
+	propellor.currentTime = 0;
+    
             // Play game over sound
             var zap = document.getElementById("zap");
             zap.play().catch(function(error) {
@@ -161,7 +187,7 @@ function updateGameArea() {
     }
     myGameArea.clear();
     myGameArea.frameNo++;
-    if (myGameArea.frameNo === 1 || everyinterval(50)) {
+    if (myGameArea.frameNo === 50 || everyinterval(50)) {
         x = myGameArea.canvas.width;
         minHeight = 500;
         maxHeight = 50;
@@ -224,5 +250,6 @@ function accelerate(n) {
 <br>
 <p>Use the Up and Down arrow keys to control movement.</p>
 <p>How long can you stay alive?</p>
+<button onclick="startGame()">Start Game</button>
 </body>
 </html>
