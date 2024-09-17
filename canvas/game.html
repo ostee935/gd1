@@ -16,6 +16,15 @@ canvas {
 <audio id="zap" src="sounds/zap.wav"></audio>
 
 <script>
+var music = document.getElementById("music");
+var propellor = document.getElementById("propellor");
+var zap = document.getElementById("zap");
+
+// Set volume for each audio element
+music.volume = 0.5; // Set music volume to 50%
+propellor.volume = 0.7; // Set propellor sound volume to 30%
+zap.volume = 0.5; // Set zap sound volume to 70%
+    
 var myGamePiece;
 var myObstacles = [];
 var myScore;
