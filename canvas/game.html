@@ -68,32 +68,58 @@ var myGameArea = {
         this.context = this.canvas.getContext("2d");
         document.body.insertBefore(this.canvas, document.body.childNodes[0]);
         this.frameNo = 0;
-        this.backgroundImage = new Image();
-        this.backgroundImage.src = "images/background.png"; // Path to your background image
-        this.backgroundImageLoaded = false;
-        this.bgX = 0; // Initial X position for background
-        this.bgSpeed = -2; // Speed of background scrolling
+
+        // First background layer
+        this.backgroundImage1 = new Image();
+        this.backgroundImage1.src = "images/background.png"; // Path to your first background image
+        this.backgroundImage1Loaded = false;
+        this.bgX1 = 0; // Initial X position for first background
+        this.bgSpeed1 = -2; // Speed of first background scrolling
+
+        // Second background layer
+        this.backgroundImage2 = new Image();
+        this.backgroundImage2.src = "images/backgroundL2.png"; // Path to your second background image
+        this.backgroundImage2Loaded = false;
+        this.bgX2 = 0; // Initial X position for second background
+        this.bgSpeed2 = -3; // Speed of second background scrolling (slightly faster)
+
         var self = this;
-        this.backgroundImage.onload = function () {
-            self.backgroundImageLoaded = true;
+        this.backgroundImage1.onload = function () {
+            self.backgroundImage1Loaded = true;
         };
+        this.backgroundImage2.onload = function () {
+            self.backgroundImage2Loaded = true;
+        };
+
         this.interval = setInterval(updateGameArea, 20);
     },
     clear: function () {
-        if (this.backgroundImageLoaded) {
-            // Update background position
-            this.bgX += this.bgSpeed;
-            if (this.bgX <= -this.canvas.width) {
-                this.bgX = 0; // Reset position for seamless looping
+        if (this.backgroundImage1Loaded && this.backgroundImage2Loaded) {
+            // Update background positions
+            this.bgX1 += this.bgSpeed1;
+            this.bgX2 += this.bgSpeed2;
+
+            if (this.bgX1 <= -this.canvas.width) {
+                this.bgX1 = 0; // Reset position for seamless looping
             }
-            // Draw the background image twice to cover the entire canvas
-            this.context.drawImage(this.backgroundImage, this.bgX, 0, this.canvas.width, this.canvas.height);
-            this.context.drawImage(this.backgroundImage, this.bgX + this.canvas.width, 0, this.canvas.width, this.canvas.height);
+
+            if (this.bgX2 <= -this.canvas.width) {
+                this.bgX2 = 0; // Reset position for seamless looping
+            }
+
+            // Draw the first background image twice to cover the entire canvas
+            this.context.drawImage(this.backgroundImage1, this.bgX1, 0, this.canvas.width, this.canvas.height);
+            this.context.drawImage(this.backgroundImage1, this.bgX1 + this.canvas.width, 0, this.canvas.width, this.canvas.height);
+
+            // Draw the second background image twice to cover the entire canvas
+            this.context.drawImage(this.backgroundImage2, this.bgX2, 0, this.canvas.width, this.canvas.height);
+            this.context.drawImage(this.backgroundImage2, this.bgX2 + this.canvas.width, 0, this.canvas.width, this.canvas.height);
         } else {
             this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
     }
 }
+
 
 
 function component(width, height, colorOrImageSrc, x, y, type) {
