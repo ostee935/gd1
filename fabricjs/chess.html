@@ -45,6 +45,7 @@
     function Game() {
       const [game, setGame] = React.useState(initialGameState);
       const [selectedSquare, setSelectedSquare] = React.useState(null);
+      let turn = 0;
 
       // Handle square click for moving pieces
       function handleClick(row, col) {
@@ -74,68 +75,66 @@
 // Function to check if the move is valid
 function isMoveValid(piece, fromRow, fromCol, toRow, toCol, game) {
   switch (piece.toLowerCase()) {
+  	//PAWN LOGIC
     case 'p':
       const direction = piece === 'p' ? 1 : -1; // White moves down, black moves up
       const forwardRow = fromRow + direction;
       const diagonalLeftCol = fromCol - 1;
       const diagonalRightCol = fromCol + 1;
 
-      // Check if moving forward is valid
       if (toRow === forwardRow && toCol === fromCol && !game[toRow][toCol]) {
-        return true; // Valid forward move
+        return true;
       }
 
-      // Check if capturing diagonally
       if (toRow === forwardRow && 
           (toCol === diagonalLeftCol || toCol === diagonalRightCol)) {
         const targetPiece = game[toRow][toCol];
         if (targetPiece) {
-          return true; // Valid diagonal capture
+          return true;
         }
-      }
-      break;
-    case 'r':
-      // Rook movement: horizontal and vertical
-      if (fromRow === toRow) { // Horizontal move
-        const colStep = (toCol > fromCol) ? 1 : -1;
-        for (let col = fromCol + colStep; col !== toCol; col += colStep) {
-          if (game[fromRow][col]) {
-            return false; // Path is blocked
-          }
-        }
-        return true; // Valid rook move
-      } else if (fromCol === toCol) { // Vertical move
-        const rowStep = (toRow > fromRow) ? 1 : -1;
-        for (let row = fromRow + rowStep; row !== toRow; row += rowStep) {
-          if (game[row][fromCol]) {
-            return false; // Path is blocked
-          }
-        }
-        return true; // Valid rook move
       }
       break;
       
-    	default:
+      //ROOK LOGIC
+    case 'r':
+      if (fromRow === toRow) {
+        const colStep = (toCol > fromCol) ? 1 : -1;
+        for (let col = fromCol + colStep; col !== toCol; col += colStep) {
+          if (game[fromRow][col]) {
+            return false;
+          }
+        }
+        return true; 
+      } else if (fromCol === toCol) {
+        const rowStep = (toRow > fromRow) ? 1 : -1;
+        for (let row = fromRow + rowStep; row !== toRow; row += rowStep) {
+          if (game[row][fromCol]) {
+            return false;
+          }
+        }
+        return true;
+      }
       break;
+      
+      //BISHOP LOGIC
       case 'b':
-      // Bishop movement: diagonally any number of squares
       const rowDiff = Math.abs(toRow - fromRow);
       const colDiff = Math.abs(toCol - fromCol);
       if (rowDiff === colDiff) {
-        // Check if the path is clear
         const rowStep = (toRow > fromRow) ? 1 : -1;
         const colStep = (toCol > fromCol) ? 1 : -1;
 
         for (let i = 1; i < rowDiff; i++) {
           if (game[fromRow + i * rowStep][fromCol + i * colStep]) {
-            return false; // Path is blocked
+            return false;
           }
         }
-        return true; // Valid bishop move
+        return true;
       }
       break;
+      
+      //KNIGHT LOGIC
       case 'n':
-      // Knight movement: L-shape (2 in one direction, 1 in another)
       const knightMoves = [
         [2, 1], [2, -1], [-2, 1], [-2, -1],
         [1, 2], [1, -2], [-1, 2], [-1, -2]
@@ -143,55 +142,55 @@ function isMoveValid(piece, fromRow, fromCol, toRow, toCol, game) {
 
       for (const [dx, dy] of knightMoves) {
         if (fromRow + dx === toRow && fromCol + dy === toCol) {
-          return true; // Valid knight move
+          return true;
         }
       }
       break;
+      
+      //QUEEN LOGIC
       case 'q':
-      // Queen movement: horizontal, vertical, or diagonal
       const isDiagonalMove = Math.abs(toRow - fromRow) === Math.abs(toCol - fromCol);
       const isStraightMove = fromRow === toRow || fromCol === toCol;
 
       if (isDiagonalMove) {
-        // Check if the path is clear for diagonal moves
         const rowStep = (toRow > fromRow) ? 1 : -1;
         const colStep = (toCol > fromCol) ? 1 : -1;
 
         for (let i = 1; i < Math.abs(toRow - fromRow); i++) {
           if (game[fromRow + i * rowStep][fromCol + i * colStep]) {
-            return false; // Path is blocked
+            return false;
           }
         }
-        return true; // Valid diagonal queen move
+        return true;
       } else if (isStraightMove) {
-        // Check if the path is clear for straight moves
-        if (fromRow === toRow) { // Horizontal move
+        if (fromRow === toRow) {
           const colStep = (toCol > fromCol) ? 1 : -1;
           for (let col = fromCol + colStep; col !== toCol; col += colStep) {
             if (game[fromRow][col]) {
-              return false; // Path is blocked
+              return false;
             }
           }
-        } else if (fromCol === toCol) { // Vertical move
+        } else if (fromCol === toCol) {
           const rowStep = (toRow > fromRow) ? 1 : -1;
           for (let row = fromRow + rowStep; row !== toRow; row += rowStep) {
             if (game[row][fromCol]) {
-              return false; // Path is blocked
+              return false;
             }
           }
         }
-        return true; // Valid straight queen move
+        return true;
       }
       break;
+      
+      //KING LOGIC
       case 'k':
-      // King movement: 1-tile in any direction
       const kingMove = Math.abs(toRow - fromRow) <= 1 && Math.abs(toCol - fromCol) <= 1;
       if (kingMove) {
-        return true; // Valid king move
+        return true;
       }
       break;
   }
-  return false; // Invalid move
+  return false;
 }
 
 
@@ -253,6 +252,9 @@ function isMoveValid(piece, fromRow, fromCol, toRow, toCol, game) {
 
     const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<Game />);
+    
+    
+    
   </script>
 </body>
 </html>
