@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Core Defense</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="800"></canvas>
+    <script>
+        const canvas = new fabric.Canvas('canvas');
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 80; // Orbit radius
+        let angle = 0; // Initial angle
+
+        // Create Shield
+        const rect = new fabric.Rect({
+            width: 10,
+            height: 40,
+            fill: 'red',
+            originX: 'center',
+            originY: 'center'
+        });
+
+        // Position the shield at the starting point
+        rect.set({
+            left: centerX + radius * Math.cos(angle),
+            top: centerY + radius * Math.sin(angle),
+            angle: angle * (180 / Math.PI) // Convert to degrees
+        });
+
+        canvas.add(rect);
+        
+        // Create the pulsing core circle
+        const coreCircle = new fabric.Circle({
+            radius: 15,
+            fill: 'blue',
+            originX: 'center',
+            originY: 'center',
+            left: centerX,
+            top: centerY
+        });
+
+        canvas.add(coreCircle);
+
+        // Pulsing effect with resting state
+let state = 'growing'; // can be 'growing', 'resting', or 'shrinking'
+
+setInterval(() => {
+    if (state === 'growing') {
+        coreCircle.set({ radius: coreCircle.radius + 1 });
+        if (coreCircle.radius >= 18) {
+            state = 'resting';
+            setTimeout(() => {
+                state = 'shrinking'; // Move to shrinking after resting
+            }, 500); // Rest for 500 milliseconds
+        }
+    } else if (state === 'shrinking') {
+        coreCircle.set({ radius: coreCircle.radius - 1 });
+        if (coreCircle.radius <= 15) {
+            state = 'resting';
+            setTimeout(() => {
+                state = 'growing'; // Move to growing after resting
+            }, 100); // Rest for 500 milliseconds
+        }
+    }
+    canvas.renderAll();
+}, 50); // Adjust the interval for speed
+
+        // Update function to rotate and move
+        function update() {
+            // Get the mouse position
+            canvas.on('mouse:move', function(event) {
+                const mouse = canvas.getPointer(event.e);
+                const mouseX = mouse.x;
+                const mouseY = mouse.y;
+
+                // Calculate angle to mouse
+                const dx = mouseX - centerX;
+                const dy = mouseY - centerY;
+                angle = Math.atan2(dy, dx);
+
+                // Position and rotation
+                rect.set({
+            left: centerX + radius * Math.cos(angle) - rect.width / 2,
+            top: centerY + radius * Math.sin(angle),
+            angle: angle * (180 / Math.PI)
+        });
+
+                canvas.renderAll();
+            });
+        }
+
+        // Start the update loop
+        update();
+    </script>
+</body>
+</html>
