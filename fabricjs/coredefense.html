@@ -29,11 +29,10 @@
             originY: 'center'
         });
 
-        // Position the shield at the starting point
         rect.set({
             left: centerX + radius * Math.cos(angle),
             top: centerY + radius * Math.sin(angle),
-            angle: angle * (180 / Math.PI) // Convert to degrees
+            angle: angle * (180 / Math.PI)
         });
 
         canvas.add(rect);
@@ -50,56 +49,120 @@
 
         canvas.add(coreCircle);
 
-        // Pulsing effect with resting state
-let state = 'growing'; // can be 'growing', 'resting', or 'shrinking'
+        // Pulsing effect
+        let state = 'growing';
 
-setInterval(() => {
-    if (state === 'growing') {
-        coreCircle.set({ radius: coreCircle.radius + 1 });
-        if (coreCircle.radius >= 18) {
-            state = 'resting';
-            setTimeout(() => {
-                state = 'shrinking'; // Move to shrinking after resting
-            }, 500); // Rest for 500 milliseconds
-        }
-    } else if (state === 'shrinking') {
-        coreCircle.set({ radius: coreCircle.radius - 1 });
-        if (coreCircle.radius <= 15) {
-            state = 'resting';
-            setTimeout(() => {
-                state = 'growing'; // Move to growing after resting
-            }, 100); // Rest for 500 milliseconds
-        }
-    }
-    canvas.renderAll();
-}, 50); // Adjust the interval for speed
+        setInterval(() => {
+            if (state === 'growing') {
+                coreCircle.set({ radius: coreCircle.radius + 1 });
+                if (coreCircle.radius >= 18) {
+                    state = 'resting';
+                    setTimeout(() => { state = 'shrinking'; }, 500);
+                }
+            } else if (state === 'shrinking') {
+                coreCircle.set({ radius: coreCircle.radius - 1 });
+                if (coreCircle.radius <= 15) {
+                    state = 'resting';
+                    setTimeout(() => { state = 'growing'; }, 100);
+                }
+            }
+            canvas.renderAll();
+        }, 50);
 
-        // Update function to rotate and move
+        // Enemy array
+        const enemies = [];
+
+        // Function to spawn enemies
+        function spawnEnemy() {
+            const enemyRadius = 5;
+            const edge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+            let x, y;
+
+            if (edge === 0) { // Top edge
+                x = Math.random() * canvas.width;
+                y = 0;
+            } else if (edge === 1) { // Right edge
+                x = canvas.width;
+                y = Math.random() * canvas.height;
+            } else if (edge === 2) { // Bottom edge
+                x = Math.random() * canvas.width;
+                y = canvas.height;
+            } else { // Left edge
+                x = 0;
+                y = Math.random() * canvas.height;
+            }
+
+            const enemy = new fabric.Circle({
+                radius: enemyRadius,
+                fill: 'green',
+                left: x,
+                top: y,
+                originX: 'center',
+                originY: 'center'
+            });
+
+            enemies.push(enemy);
+            canvas.add(enemy);
+        }
+
+        // Move enemies towards the core
+        function moveEnemies() {
+            enemies.forEach((enemy, index) => {
+                const dx = centerX - enemy.left;
+                const dy = centerY - enemy.top;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                // Normalize the direction
+                if (distance > 0) {
+                    enemy.left += (dx / distance) * 2; // Adjust speed here
+                    enemy.top += (dy / distance) * 2; // Adjust speed here
+                }
+
+                // Remove enemy if it reaches the core
+                if (distance < coreCircle.radius) {
+                    canvas.remove(enemy);
+                    enemies.splice(index, 1);
+                }
+                
+                // Remove enemy if it reaches the core
+                if (distance < rect.radius) {
+                    canvas.remove(enemy);
+                    enemies.splice(index, 1);
+                }
+            });
+            canvas.renderAll();
+        }
+
+        // Update function
         function update() {
-            // Get the mouse position
             canvas.on('mouse:move', function(event) {
                 const mouse = canvas.getPointer(event.e);
                 const mouseX = mouse.x;
                 const mouseY = mouse.y;
-
-                // Calculate angle to mouse
                 const dx = mouseX - centerX;
                 const dy = mouseY - centerY;
                 angle = Math.atan2(dy, dx);
-
-                // Position and rotation
                 rect.set({
-            left: centerX + radius * Math.cos(angle) - rect.width / 2,
-            top: centerY + radius * Math.sin(angle),
-            angle: angle * (180 / Math.PI)
-        });
-
+                    left: centerX + radius * Math.cos(angle) - rect.width / 2,
+                    top: centerY + radius * Math.sin(angle),
+                    angle: angle * (180 / Math.PI)
+                });
                 canvas.renderAll();
             });
         }
 
+        // Spawn an enemy every 2 seconds
+        setInterval(spawnEnemy, 700);
+        
         // Start the update loop
         update();
+
+        // Animation loop
+        function animate() {
+            moveEnemies();
+            requestAnimationFrame(animate);
+        }
+        animate();
     </script>
 </body>
 </html>
