@@ -38,7 +38,7 @@
 
         canvas.add(rect);
         
-        // Create the pulsing core circle
+        // Create the core
         const coreCircle = new fabric.Circle({
             radius: 15,
             fill: '#cc0066',
@@ -70,13 +70,13 @@
             canvas.renderAll();
         }, 50);
 
-        // Enemy array
-        const enemies = [];
+        // Enemy arrays
+        const dots = [];
+        const newEnemies = [];
 
-        // Function to spawn enemies
-        function spawnEnemy() {
-            const enemyRadius = 5;
-            const edge = Math.floor(Math.random() * 4); // 0: top, 1: right, 2: bottom, 3: left
+
+        function getRandom(){
+            const edge = Math.floor(Math.random() * 4);
             let x, y;
 
             if (edge === 0) { // Top edge
@@ -92,9 +92,16 @@
                 x = 0;
                 y = Math.random() * canvas.height;
             }
+            return {x, y};
+        }
+            
+        // Function to spawn dots
+        function spawnDot() {
+            const dotRadius = 5;
+            const {x, y} = getRandom();
 
-            const enemy = new fabric.Circle({
-                radius: enemyRadius,
+            const dot = new fabric.Circle({
+                radius: dotRadius,
                 fill: '#ff6600',
                 left: x,
                 top: y,
@@ -102,39 +109,73 @@
                 originY: 'center'
             });
 
-            enemies.push(enemy);
-            canvas.add(enemy);
+            dots.push(dot);
+            canvas.add(dot);
         }
 
-        // Move enemies towards the core
-        function moveEnemies() {
-            enemies.forEach((enemy, index) => {
-                const dx = centerX - enemy.left;
-                const dy = centerY - enemy.top;
+        
+        // Move dots towards the core
+        function moveDots() {
+            dots.forEach((dot, index) => {
+                const dx = centerX - dot.left;
+                const dy = centerY - dot.top;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
                 // Normalize the direction
                 if (distance > 0) {
-                    enemy.left += (dx / distance) * 2; // Adjust speed here
-                    enemy.top += (dy / distance) * 2; // Adjust speed here
+                    dot.left += (dx / distance) * 2; // Adjust speed here
+                    dot.top += (dy / distance) * 2; // Adjust speed here
                 }
 
-                // Remove enemy if it reaches the core
+                // Remove dot if it reaches the core
                 if (distance < coreCircle.radius) {
-                    canvas.remove(enemy);
-                    enemies.splice(index, 1);
+                    canvas.remove(dot);
+                    dots.splice(index, 1);
                 }
-                
-                // Remove enemy if it reaches the core
-                //if (distance < radius+rect.width) {
-                //    canvas.remove(enemy);
-                //    enemies.splice(index, 1);
-                //}
             });
             canvas.renderAll();
         }
 
-        // Update function
+// Function to spawn a more erratic enemy
+function spawnBlot() {
+    const {x, y} = getRandom();
+
+    const Blot = new fabric.Circle({
+        radius: 8,
+        fill: '#00ff00',
+        left: x,
+        top: y,
+        originX: 'center',
+        originY: 'center'
+    });
+
+    newEnemies.push(Blot);
+    canvas.add(Blot);
+}
+
+function moveBlots() {
+    newEnemies.forEach((enemy, index) => {
+        const dx = centerX - enemy.left;
+        const dy = centerY - enemy.top;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+            enemy.left += (dx / distance) * 1;
+            enemy.top += (dy / distance) * 1;
+            enemy.left += Math.floor(Math.random() * 6) -2.5;
+            enemy.top += Math.floor(Math.random() * 2) -1;
+        }
+
+        // Remove the new enemy if it reaches the core
+        if (distance < coreCircle.radius) {
+            canvas.remove(enemy);
+            newEnemies.splice(index, 1);
+        }
+    });
+}
+
+
+        // Mouse function
         function update() {
             canvas.on('mouse:move', function(event) {
                 const mouse = canvas.getPointer(event.e);
@@ -152,15 +193,17 @@
             });
         }
 
-        // Spawn an enemy every 2 seconds
-        setInterval(spawnEnemy, 700);
+        // Spawn enemies
+        setInterval(spawnDot, 1500);
+        setInterval(spawnBlot, 5000);
         
         // Start the update loop
         update();
 
         // Animation loop
         function animate() {
-            moveEnemies();
+            moveDots();
+            moveBlots();
             requestAnimationFrame(animate);
         }
         animate();
