@@ -15,16 +15,17 @@
     <canvas id="canvas" width="800" height="800"></canvas>
     <script>
         const canvas = new fabric.Canvas('canvas');
+        canvas.setBackgroundColor('#0c0c27', canvas.renderAll.bind(canvas));
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const radius = 80; // Orbit radius
+        const radius = 40; // Orbit radius
         let angle = 0; // Initial angle
 
         // Create Shield
         const rect = new fabric.Rect({
             width: 10,
             height: 40,
-            fill: 'red',
+            fill: '#990033',
             originX: 'center',
             originY: 'center'
         });
@@ -40,7 +41,7 @@
         // Create the pulsing core circle
         const coreCircle = new fabric.Circle({
             radius: 15,
-            fill: 'blue',
+            fill: '#cc0066',
             originX: 'center',
             originY: 'center',
             left: centerX,
@@ -94,7 +95,7 @@
 
             const enemy = new fabric.Circle({
                 radius: enemyRadius,
-                fill: 'green',
+                fill: '#ff6600',
                 left: x,
                 top: y,
                 originX: 'center',
@@ -125,10 +126,10 @@
                 }
                 
                 // Remove enemy if it reaches the core
-                if (distance < rect.radius) {
-                    canvas.remove(enemy);
-                    enemies.splice(index, 1);
-                }
+                //if (distance < radius+rect.width) {
+                //    canvas.remove(enemy);
+                //    enemies.splice(index, 1);
+                //}
             });
             canvas.renderAll();
         }
