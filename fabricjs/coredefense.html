@@ -23,7 +23,7 @@
 
         // Create Shield
         const rect = new fabric.Rect({
-            width: 10,
+            width: 5,
             height: 40,
             fill: '#990033',
             originX: 'center',
@@ -126,6 +126,12 @@
                     dot.left += (dx / distance) * 2; // Adjust speed here
                     dot.top += (dy / distance) * 2; // Adjust speed here
                 }
+                
+                // Check collision with shield
+        		if (checkCollision(rect, dot)) {
+            		canvas.remove(dot);
+            		dots.splice(index, 1);
+        		}
 
                 // Remove dot if it reaches the core
                 if (distance < coreCircle.radius) {
@@ -136,43 +142,49 @@
             canvas.renderAll();
         }
 
-// Function to spawn a more erratic enemy
-function spawnBlot() {
-    const {x, y} = getRandom();
+		// Function to spawn a more erratic enemy
+		function spawnBlot() {
+    		const {x, y} = getRandom();
 
-    const Blot = new fabric.Circle({
-        radius: 8,
-        fill: '#00ff00',
-        left: x,
-        top: y,
-        originX: 'center',
-        originY: 'center'
-    });
+    		const Blot = new fabric.Circle({
+        		radius: 8,
+        		fill: '#00ff00',
+        		left: x,
+        		top: y,
+        		originX: 'center',
+        		originY: 'center'
+    		});
 
-    newEnemies.push(Blot);
-    canvas.add(Blot);
-}
+    		newEnemies.push(Blot);
+    		canvas.add(Blot);
+		}
 
-function moveBlots() {
-    newEnemies.forEach((enemy, index) => {
-        const dx = centerX - enemy.left;
-        const dy = centerY - enemy.top;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+		function moveBlots() {
+    		newEnemies.forEach((enemy, index) => {
+        		const dx = centerX - enemy.left;
+        		const dy = centerY - enemy.top;
+        		const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance > 0) {
-            enemy.left += (dx / distance) * 1;
-            enemy.top += (dy / distance) * 1;
-            enemy.left += Math.floor(Math.random() * 6) -2.5;
-            enemy.top += Math.floor(Math.random() * 2) -1;
-        }
+        		if (distance > 0) {
+            		enemy.left += (dx / distance) * 1;
+            		enemy.top += (dy / distance) * 1;
+            		enemy.left += Math.floor(Math.random() * 6) -2.5;
+            		enemy.top += Math.floor(Math.random() * 2) -1;
+        		}
 
-        // Remove the new enemy if it reaches the core
-        if (distance < coreCircle.radius) {
-            canvas.remove(enemy);
-            newEnemies.splice(index, 1);
-        }
-    });
-}
+        		// Check collision with shield
+        		if (checkCollision(rect, enemy)) {
+            		canvas.remove(enemy);
+            		newEnemies.splice(index, 1);
+        		}
+
+        		// Remove the new enemy if it reaches the core
+        		if (distance < coreCircle.radius) {
+            		canvas.remove(enemy);
+            		newEnemies.splice(index, 1);
+        		}
+    		});
+		}
 
 
         // Mouse function
@@ -192,10 +204,34 @@ function moveBlots() {
                 canvas.renderAll();
             });
         }
+        
+        // Collision with shield
+        function checkCollision(rect, circle) {
+    		const circleDistanceX = Math.abs(circle.left - rect.left);
+    		const circleDistanceY = Math.abs(circle.top - rect.top);
+    
+    		if (circleDistanceX > (rect.width / 2 + circle.radius) || 
+        		circleDistanceY > (rect.height / 2 + circle.radius)) {
+        		return false;
+    		}
+    
+    		if (circleDistanceX <= (rect.width / 2) || 
+        		circleDistanceY <= (rect.height / 2)) {
+        		return true;
+    		}
+    
+    		const cornerDistance_sq = (circleDistanceX - rect.width / 2) ** 2 + 
+            						  (circleDistanceY - rect.height / 2) ** 2;
+
+    		return cornerDistance_sq <= (circle.radius ** 2);
+		}
 
         // Spawn enemies
-        setInterval(spawnDot, 1500);
-        setInterval(spawnBlot, 5000);
+        dotInterval = 1000
+        blotInterval = 5000
+        
+        setInterval(spawnDot, dotInterval);
+        setInterval(spawnBlot, blotInterval);
         
         // Start the update loop
         update();
@@ -205,6 +241,7 @@ function moveBlots() {
             moveDots();
             moveBlots();
             requestAnimationFrame(animate);
+            blotInterval += Math.random();
         }
         animate();
     </script>
