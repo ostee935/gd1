@@ -15,7 +15,7 @@
     <canvas id="canvas" width="800" height="800"></canvas>
     <script>
         const canvas = new fabric.Canvas('canvas');
-        canvas.setBackgroundColor('#0c0c27', canvas.renderAll.bind(canvas));
+        canvas.setBackgroundColor('#1e1e2f', canvas.renderAll.bind(canvas));
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = 40; // Orbit radius
@@ -24,10 +24,12 @@
         // Create Shield
         const rect = new fabric.Rect({
             width: 5,
-            height: 40,
-            fill: '#990033',
-            originX: 'center',
-            originY: 'center'
+    		height: 40,
+    		fill: '#99003d',
+    		stroke: '#800033',       // Set stroke color
+    		strokeWidth: 2,        // Set stroke width
+    		originX: 'center',
+    		originY: 'center'
         });
 
         rect.set({
@@ -40,13 +42,15 @@
         
         // Create the core
         const coreCircle = new fabric.Circle({
-            radius: 15,
-            fill: '#cc0066',
-            originX: 'center',
-            originY: 'center',
-            left: centerX,
-            top: centerY
-        });
+    		radius: 15,
+    		fill: '#e6005c',
+    		stroke: '#99003d',       // Set stroke color
+    		strokeWidth: 3,        // Set stroke width
+    		originX: 'center',
+    		originY: 'center',
+    		left: centerX,
+    		top: centerY
+		});
 
         canvas.add(coreCircle);
 
@@ -97,16 +101,17 @@
             
         // Function to spawn dots
         function spawnDot() {
-            const dotRadius = 5;
             const {x, y} = getRandom();
 
             const dot = new fabric.Circle({
-                radius: dotRadius,
-                fill: '#ff6600',
-                left: x,
-                top: y,
-                originX: 'center',
-                originY: 'center'
+                radius: 5,
+        		fill: '#ff3333',
+        		stroke: '#ff6666',       // Set stroke color
+        		strokeWidth: 1,        // Set stroke width
+        		left: x,
+        		top: y,
+        		originX: 'center',
+        		originY: 'center'
             });
 
             dots.push(dot);
@@ -148,7 +153,9 @@
 
     		const Blot = new fabric.Circle({
         		radius: 8,
-        		fill: '#00ff00',
+        		fill: '#00cc00',
+        		stroke: '#ccffcc',       // Set stroke color
+        		strokeWidth: 1,        // Set stroke width
         		left: x,
         		top: y,
         		originX: 'center',
