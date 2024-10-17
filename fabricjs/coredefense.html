@@ -15,7 +15,7 @@
     <canvas id="canvas" width="800" height="800"></canvas>
     <script>
         const canvas = new fabric.Canvas('canvas');
-        canvas.setBackgroundColor('#000d1a', canvas.renderAll.bind(canvas));
+        canvas.setBackgroundColor('#001a33', canvas.renderAll.bind(canvas));
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = 40; // Orbit radius
@@ -123,8 +123,8 @@
 
             const dot = new fabric.Circle({
                 radius: 6,
-        		fill: '#0077b3',
-        		stroke: '#98e6e6',       // Set stroke color
+        		fill: '#008040',
+        		stroke: '#00ffbf',       // Set stroke color
         		strokeWidth: 1,        // Set stroke width
         		left: x,
         		top: y,
@@ -171,8 +171,8 @@
 
     		const Blot = new fabric.Circle({
         		radius: 8,
-        		fill: '#006666',
-        		stroke: '#00cccc',       // Set stroke color
+        		fill: '#739900',
+        		stroke: '#ffff1a',       // Set stroke color
         		strokeWidth: 1,        // Set stroke width
         		left: x,
         		top: y,
@@ -215,7 +215,7 @@
 function createDriftingParticle() {
     const particle = new fabric.Circle({
         radius: Math.random() * 2 + 1, // Random size for variety
-        fill: '#001a33', // Particle color
+        fill: '#00284d', // Particle color
         left: canvas.width, // Start from the right side
         top: Math.random() * canvas.height, // Random vertical position
         originX: 'center',
@@ -228,7 +228,7 @@ function createDriftingParticle() {
 
     // Drift the particle to the left
     function driftParticle() {
-        particle.left -= 1; // Move left (adjust speed here)
+        particle.left -= 2; // Move left (adjust speed here)
 
         // Remove particle if it goes off-screen
         if (particle.left < -particle.radius) {
@@ -247,7 +247,7 @@ function createDriftingParticle() {
 function createParticle2() {
     const particle2 = new fabric.Circle({
         radius: Math.random() * 3 + 2, // Random size for variety
-        fill: '#00284d', // Particle color
+        fill: '#003566', // Particle color
         left: canvas.width, // Start from the right side
         top: Math.random() * canvas.height, // Random vertical position
         originX: 'center',
@@ -260,7 +260,7 @@ function createParticle2() {
 
     // Drift the particle to the left
     function driftParticle2() {
-        particle2.left -= 2; // Move left (adjust speed here)
+        particle2.left -= 3; // Move left (adjust speed here)
 
         // Remove particle if it goes off-screen
         if (particle2.left < -particle2.radius) {
