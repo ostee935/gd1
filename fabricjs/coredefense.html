@@ -15,7 +15,7 @@
     <canvas id="canvas" width="800" height="800"></canvas>
     <script>
         const canvas = new fabric.Canvas('canvas');
-        canvas.setBackgroundColor('#1e1e2f', canvas.renderAll.bind(canvas));
+        canvas.setBackgroundColor('#000d1a', canvas.renderAll.bind(canvas));
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
         const radius = 40; // Orbit radius
@@ -29,7 +29,8 @@
     		stroke: '#800033',       // Set stroke color
     		strokeWidth: 2,        // Set stroke width
     		originX: 'center',
-    		originY: 'center'
+    		originY: 'center',
+            selectable: false
         });
 
         rect.set({
@@ -49,10 +50,27 @@
     		originX: 'center',
     		originY: 'center',
     		left: centerX,
-    		top: centerY
+    		top: centerY,
+            selectable: false
 		});
 
         canvas.add(coreCircle);
+        
+        // Create the core
+        const cellBlob = new fabric.Circle({
+    		radius: 40,
+    		fill: '#250e25',
+    		stroke: '#371537',       // Set stroke color
+    		strokeWidth: 3,        // Set stroke width
+    		originX: 'center',
+    		originY: 'center',
+    		left: centerX,
+    		top: centerY,
+            selectable: false
+		});
+
+        canvas.add(cellBlob);
+        canvas.sendToBack(cellBlob);
 
         // Pulsing effect
         let state = 'growing';
@@ -104,9 +122,9 @@
             const {x, y} = getRandom();
 
             const dot = new fabric.Circle({
-                radius: 5,
-        		fill: '#ff3333',
-        		stroke: '#ff6666',       // Set stroke color
+                radius: 6,
+        		fill: '#0077b3',
+        		stroke: '#98e6e6',       // Set stroke color
         		strokeWidth: 1,        // Set stroke width
         		left: x,
         		top: y,
@@ -153,8 +171,8 @@
 
     		const Blot = new fabric.Circle({
         		radius: 8,
-        		fill: '#00cc00',
-        		stroke: '#ccffcc',       // Set stroke color
+        		fill: '#006666',
+        		stroke: '#00cccc',       // Set stroke color
         		strokeWidth: 1,        // Set stroke width
         		left: x,
         		top: y,
@@ -192,7 +210,70 @@
         		}
     		});
 		}
+        
+// Function to create a drifting particle
+function createDriftingParticle() {
+    const particle = new fabric.Circle({
+        radius: Math.random() * 2 + 1, // Random size for variety
+        fill: '#001a33', // Particle color
+        left: canvas.width, // Start from the right side
+        top: Math.random() * canvas.height, // Random vertical position
+        originX: 'center',
+        originY: 'center'
+    });
 
+    // Add particle to the canvas
+    canvas.add(particle);
+    canvas.sendToBack(particle);
+
+    // Drift the particle to the left
+    function driftParticle() {
+        particle.left -= 1; // Move left (adjust speed here)
+
+        // Remove particle if it goes off-screen
+        if (particle.left < -particle.radius) {
+            canvas.remove(particle);
+        } else {
+            canvas.renderAll();
+            requestAnimationFrame(driftParticle);
+        }
+    }
+
+    // Start drifting
+    driftParticle();
+}
+
+// Function to create a drifting particle
+function createParticle2() {
+    const particle2 = new fabric.Circle({
+        radius: Math.random() * 3 + 2, // Random size for variety
+        fill: '#00284d', // Particle color
+        left: canvas.width, // Start from the right side
+        top: Math.random() * canvas.height, // Random vertical position
+        originX: 'center',
+        originY: 'center'
+    });
+
+    // Add particle to the canvas
+    canvas.add(particle2);
+    canvas.sendToBack(particle2);
+
+    // Drift the particle to the left
+    function driftParticle2() {
+        particle2.left -= 2; // Move left (adjust speed here)
+
+        // Remove particle if it goes off-screen
+        if (particle2.left < -particle2.radius) {
+            canvas.remove(particle2);
+        } else {
+            canvas.renderAll();
+            requestAnimationFrame(driftParticle2);
+        }
+    }
+
+    // Start drifting
+    driftParticle2();
+}
 
         // Mouse function
         function update() {
@@ -239,6 +320,8 @@
         
         setInterval(spawnDot, dotInterval);
         setInterval(spawnBlot, blotInterval);
+        setInterval(createDriftingParticle, 300);
+        setInterval(createParticle2, 500);
         
         // Start the update loop
         update();
