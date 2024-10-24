@@ -1,327 +1,328 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Core Defense</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-    <style>
-        canvas {
-            border: 1px solid black;
-        }
-    </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+canvas {
+    border:2px solid #d3d3d3;
+    background-color: white;
+}
+</style>
 </head>
+
 <body>
-    <canvas id="canvas" width="800" height="800"></canvas>
-    <script>
-        const canvas = new fabric.Canvas('canvas');
-        canvas.setBackgroundColor('#001a33', canvas.renderAll.bind(canvas));
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        const radius = 45; // Orbit radius
-        const health = 25; // initial Health
-        let angle = 0; // Initial angle
+<audio id="music" src="sounds/music.wav" loop></audio>
+<audio id="propellor" src="sounds/propellor.wav" loop></audio>
+<audio id="zap" src="sounds/zap.wav"></audio>
 
-        // Create Shield
-        const rect = new fabric.Rect({
-            width: 5,
-    		height: 40,
-    		fill: '#e6005c',
-    		stroke: '#99003d',       // Set stroke color
-    		strokeWidth: 2,        // Set stroke width
-    		originX: 'center',
-    		originY: 'center',
-            selectable: false
-        });
+<script>
+var music = document.getElementById("music");
+var propellor = document.getElementById("propellor");
+var zap = document.getElementById("zap");
 
-        rect.set({
-            left: centerX + radius * Math.cos(angle),
-            top: centerY + radius * Math.sin(angle),
-            angle: angle * (180 / Math.PI)
-        });
+// Set volume for each audio element
+music.volume = 0.5; // Set music volume to 50%
+propellor.volume = 0.7; // Set propellor sound volume to 30%
+zap.volume = 0.5; // Set zap sound volume to 70%
+    
+var myGamePiece;
+var myObstacles = [];
+var myScore;
 
-        canvas.add(rect);
-        
-        // Create the core
-        const coreCircle = new fabric.Circle({
-    		radius: 15,
-    		fill: '#e6005c',
-    		stroke: '#99003d',       // Set stroke color
-    		strokeWidth: 3,        // Set stroke width
-    		originX: 'center',
-    		originY: 'center',
-    		left: centerX,
-    		top: centerY,
-            selectable: false
-		});
+function startGame() {
+    // Start playing background music and propellor sound
+    var music = document.getElementById("music");
+    var propellor = document.getElementById("propellor");
 
-        canvas.add(coreCircle);
-        
-        const cellBlob = new fabric.Circle({
-    		radius: (health + 20),
-    		fill: '#250e25',
-    		stroke: '#99003d',       // Set stroke color
-    		strokeWidth: 3,        // Set stroke width
-    		originX: 'center',
-    		originY: 'center',
-    		left: centerX,
-    		top: centerY,
-            selectable: false
-		});
+    music.play().catch(function(error) {
+        console.log("Error playing music:", error);
+    });
 
-        canvas.add(cellBlob);
-        canvas.sendToBack(cellBlob);
+    propellor.play().catch(function(error) {
+        console.log("Error playing propellor sound:", error);
+    });
 
-        // Pulsing effect
-        let state = 'growing';
+    // Clear existing interval if it exists
+    if (myGameArea.interval) {
+        clearInterval(myGameArea.interval);
+    }
 
-        setInterval(() => {
-            if (state === 'growing') {
-                coreCircle.set({ radius: coreCircle.radius + 1 });
-                if (coreCircle.radius >= 18) {
-                    state = 'resting';
-                    setTimeout(() => { state = 'shrinking'; }, 500);
-                }
-            } else if (state === 'shrinking') {
-                coreCircle.set({ radius: coreCircle.radius - 1 });
-                if (coreCircle.radius <= 15) {
-                    state = 'resting';
-                    setTimeout(() => { state = 'growing'; }, 100);
-                }
+    // Reset game state
+    myObstacles = [];
+    myGameArea.frameNo = 0;
+    myGamePiece = new component(32, 32, ["images/player.png", "images/player2.png"], 10, 185, "image");
+    myGamePiece.gravity = 0;
+    myGamePiece.acceleration = 0;
+    myScore = new component("30px", "Courier New", "white", 400, 390, "text");
+    
+    // Restart the game loop
+    myGameArea.start();
+}
+
+
+
+var myGameArea = {
+    canvas: document.createElement("canvas"),
+    start: function () {
+        this.canvas.width = 600;
+        this.canvas.height = 400;
+        this.context = this.canvas.getContext("2d");
+        document.body.insertBefore(this.canvas, document.body.childNodes[0]);
+        this.frameNo = 0;
+
+        // First background layer
+        this.backgroundImage1 = new Image();
+        this.backgroundImage1.src = "images/background.png"; // Path to your first background image
+        this.backgroundImage1Loaded = false;
+        this.bgX1 = 0; // Initial X position for first background
+        this.bgSpeed1 = -2; // Speed of first background scrolling
+
+        // Second background layer
+        this.backgroundImage2 = new Image();
+        this.backgroundImage2.src = "images/backgroundL2.png"; // Path to your second background image
+        this.backgroundImage2Loaded = false;
+        this.bgX2 = 0; // Initial X position for second background
+        this.bgSpeed2 = -3; // Speed of second background scrolling (slightly faster)
+
+        var self = this;
+        this.backgroundImage1.onload = function () {
+            self.backgroundImage1Loaded = true;
+        };
+        this.backgroundImage2.onload = function () {
+            self.backgroundImage2Loaded = true;
+        };
+
+        this.interval = setInterval(updateGameArea, 20);
+    },
+    clear: function () {
+        if (this.backgroundImage1Loaded && this.backgroundImage2Loaded) {
+            // Update background positions
+            this.bgX1 += this.bgSpeed1;
+            this.bgX2 += this.bgSpeed2;
+
+            if (this.bgX1 <= -this.canvas.width) {
+                this.bgX1 = 0; // Reset position for seamless looping
             }
-            canvas.renderAll();
-        }, 50);
 
-        // Enemy arrays
-        const dots = [];
-        const newEnemies = [];
-
-
-        function getRandom(){
-            const edge = Math.floor(Math.random() * 4);
-            let x, y;
-
-            if (edge === 0) { // Top edge
-                x = Math.random() * canvas.width;
-                y = 0;
-            } else if (edge === 1) { // Right edge
-                x = canvas.width;
-                y = Math.random() * canvas.height;
-            } else if (edge === 2) { // Bottom edge
-                x = Math.random() * canvas.width;
-                y = canvas.height;
-            } else { // Left edge
-                x = 0;
-                y = Math.random() * canvas.height;
+            if (this.bgX2 <= -this.canvas.width) {
+                this.bgX2 = 0; // Reset position for seamless looping
             }
-            return {x, y};
+
+            // Draw the first background image twice to cover the entire canvas
+            this.context.drawImage(this.backgroundImage1, this.bgX1, 0, this.canvas.width, this.canvas.height);
+            this.context.drawImage(this.backgroundImage1, this.bgX1 + this.canvas.width, 0, this.canvas.width, this.canvas.height);
+
+            // Draw the second background image twice to cover the entire canvas
+            this.context.drawImage(this.backgroundImage2, this.bgX2, 0, this.canvas.width, this.canvas.height);
+            this.context.drawImage(this.backgroundImage2, this.bgX2 + this.canvas.width, 0, this.canvas.width, this.canvas.height);
+        } else {
+            this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         }
+    }
+}
+
+
+
+function component(width, height, imageSrcArray, x, y, type) {
+    this.type = type;
+    this.width = width;
+    this.height = height;
+    
+    if (type === "image") {
+        this.imageSrcArray = imageSrcArray;
+        this.images = [];
+        this.currentImageIndex = 0;
+        this.imageLoaded = 0;
+
+        for (var i = 0; i < imageSrcArray.length; i++) {
+            var img = new Image();
+            img.src = imageSrcArray[i];
+            img.onload = (function(image) {
+                return function() {
+                    this.imageLoaded++;
+                    if (this.imageLoaded === imageSrcArray.length) {
+                        this.imageLoaded = true;
+                    }
+                }.bind(this);
+            }.bind(this))(img);
+            this.images.push(img);
+        }
+    } else {
+        this.color = imageSrcArray;
+    }
+
+    this.speedX = 0;
+    this.speedY = 0;
+    this.x = x;
+    this.y = y;
+    this.gravity = 0.8;
+    this.gravitySpeed = 0;
+    this.text = "";
+
+    this.update = function() {
+        var ctx = myGameArea.context;
+        if (this.type === "text") {
+            ctx.font = this.width + " " + this.height;
+            ctx.fillStyle = this.color;
+            ctx.fillText(this.text, this.x, this.y);
+        } else if (this.type === "image") {
+            if (this.imageLoaded) {
+                ctx.drawImage(this.images[this.currentImageIndex], this.x, this.y, this.width, this.height);
+            } else {
+                ctx.fillStyle = "red";
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        } else {
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y, this.width, this.height);
+        }
+    }
+
+    this.newPos = function() {
+        this.gravitySpeed += this.gravity;
+        this.x += this.speedX;
+        this.y += this.speedY + this.gravitySpeed;
+        this.hitBottom();
+        this.hitTop();
+    }
+
+    this.hitBottom = function() {
+        var bottom = myGameArea.canvas.height - this.height;
+        if (this.y > bottom) {
+            this.y = bottom;
+            this.gravitySpeed = 0;
+        }
+    }
+
+    this.hitTop = function() {
+        var top = 0;
+        if (this.y < top) {
+            this.y = top;
+            this.gravitySpeed = 0;
+        }
+    }
+
+    this.crashWith = function(otherobj) {
+        var myleft = this.x;
+        var myright = this.x + this.width;
+        var mytop = this.y;
+        var mybottom = this.y + this.height;
+        var otherleft = otherobj.x;
+        var otherright = otherobj.x + otherobj.width;
+        var othertop = otherobj.y;
+        var otherbottom = otherobj.y + otherobj.height;
+        return !(mybottom < othertop || mytop > otherbottom || myright < otherleft || myleft > otherright);
+    }
+
+    this.animate = function(interval) {
+        if (this.type === "image" && this.imageSrcArray.length > 1) {
+            this.animationInterval = interval;
+            if (myGameArea.frameNo % this.animationInterval === 0) {
+                this.currentImageIndex = (this.currentImageIndex + 1) % this.images.length;
+            }
+        }
+    }
+}
+
+
+var lastTime = 0;
+
+function updateGameArea() {
+    var x, height, gap, minHeight, maxHeight, minGap, maxGap;
+    for (var i = 0; i < myObstacles.length; i++) {
+        if (myGamePiece.crashWith(myObstacles[i])) {
+            clearInterval(myGameArea.interval);
+
+            var propellor = document.getElementById("propellor");
+            propellor.pause();
+            propellor.currentTime = 0;
             
-        // Function to spawn dots
-        function spawnDot() {
-            const {x, y} = getRandom();
+        // Play game over sound
+        var zap = document.getElementById("zap");
+        zap.play().catch(function(error) {
+            console.log("Error playing zap sound:", error);
+        });
 
-            const dot = new fabric.Circle({
-                radius: 6,
-        		fill: '#008040',
-        		stroke: '#00ffbf',       // Set stroke color
-        		strokeWidth: 1,        // Set stroke width
-        		left: x,
-        		top: y,
-        		originX: 'center',
-        		originY: 'center'
-            });
+        // Show death animation
+        myGamePiece = new component(32, 32, ["images/playerD.png"], myGamePiece.x, myGamePiece.y, "image");
 
-            dots.push(dot);
-            canvas.add(dot);
-        }
-
-        
-function moveDots() {
-    dots.forEach((dot, index) => {
-        const dx = centerX - dot.left;
-        const dy = centerY - dot.top;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance > 0) {
-            dot.left += (dx / distance) * 2; // Adjust speed here
-            dot.top += (dy / distance) * 2; // Adjust speed here
-        }
-
-        if (distance <= radius) {
-            const angleDot = Math.atan2(dy, dx);
-            const shieldAngle = rect.angle / 180 * Math.PI;
-
-            console.log('Dot Angle:', angleDot, 'Shield Angle:', shieldAngle);
-
-            if (Math.abs(shieldAngle - angleDot) < Math.PI / 30) {
-                console.log('Collision detected!');
-                canvas.remove(dot);
-                dots.splice(index, 1);
-            }
-        }
-
-        if (distance < coreCircle.radius) {
-            canvas.remove(dot);
-            dots.splice(index, 1);
-        }
-    });
-}
-
-		// Function to spawn a more erratic enemy
-		function spawnBlot() {
-    		const {x, y} = getRandom();
-
-    		const Blot = new fabric.Circle({
-        		radius: 8,
-        		fill: '#739900',
-        		stroke: '#ffff1a',       // Set stroke color
-        		strokeWidth: 1,        // Set stroke width
-        		left: x,
-        		top: y,
-        		originX: 'center',
-        		originY: 'center'
-    		});
-
-    		newEnemies.push(Blot);
-    		canvas.add(Blot);
-		}
-
-		function moveBlots() {
-    newEnemies.forEach((enemy, index) => {
-        const dx = centerX - enemy.left;
-        const dy = centerY - enemy.top;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        
-        if (distance > 0) {
-            enemy.left += (dx / distance) * 1;
-            enemy.top += (dy / distance) * 1;
-            enemy.left += Math.floor(Math.random() * 6) - 2.5;
-            enemy.top += Math.floor(Math.random() * 2) - 1;
-        }
-
-        // Check if the enemy is at the shield's orbit radius
-        if (distance <= radius) {
-            const angleEnemy = Math.atan2(dy, dx);
-            const shieldAngle = angle;
-
-            // Check if the angles are close enough
-            if (Math.abs(shieldAngle - angleEnemy) < Math.PI / 18) { // 10 degrees tolerance
-                canvas.remove(enemy);
-                newEnemies.splice(index, 1);
-            }
-        }
-
-        // Remove the new enemy if it reaches the core
-        if (distance < coreCircle.radius) {
-            canvas.remove(enemy);
-            newEnemies.splice(index, 1);
-        }
-    });
-}
-        
-// Function to create a drifting particle
-function createDriftingParticle() {
-    const particle = new fabric.Circle({
-        radius: Math.random() * 2 + 1, // Random size for variety
-        fill: '#00284d', // Particle color
-        left: canvas.width, // Start from the right side
-        top: Math.random() * canvas.height, // Random vertical position
-        originX: 'center',
-        originY: 'center'
-    });
-
-    // Add particle to the canvas
-    canvas.add(particle);
-    canvas.sendToBack(particle);
-
-    // Drift the particle to the left
-    function driftParticle() {
-        particle.left -= 2; // Move left (adjust speed here)
-
-        // Remove particle if it goes off-screen
-        if (particle.left < -particle.radius) {
-            canvas.remove(particle);
-        } else {
-            canvas.renderAll();
-            requestAnimationFrame(driftParticle);
-        }
+        myGameArea.context.font = "40px Consolas";
+        myGameArea.context.fillStyle = "red";
+        myGameArea.context.textAlign = "center";
+        myGameArea.context.fillText("Game Over", myGameArea.canvas.width / 2, myGameArea.canvas.height / 2);
+        return;
+    	}
     }
 
-    // Start drifting
-    driftParticle();
-}
-
-// Function to create a drifting particle
-function createParticle2() {
-    const particle2 = new fabric.Circle({
-        radius: Math.random() * 3 + 2, // Random size for variety
-        fill: '#003566', // Particle color
-        left: canvas.width, // Start from the right side
-        top: Math.random() * canvas.height, // Random vertical position
-        originX: 'center',
-        originY: 'center'
-    });
-
-    // Add particle to the canvas
-    canvas.add(particle2);
-    canvas.sendToBack(particle2);
-
-    // Drift the particle to the left
-    function driftParticle2() {
-        particle2.left -= 3; // Move left (adjust speed here)
-
-        // Remove particle if it goes off-screen
-        if (particle2.left < -particle2.radius) {
-            canvas.remove(particle2);
-        } else {
-            canvas.renderAll();
-            requestAnimationFrame(driftParticle2);
-        }
+    myGameArea.clear();
+    myGameArea.frameNo++;
+    
+    // Update idle animation every 10 frames
+    myGamePiece.animate(10);
+    
+    if (myGameArea.frameNo === 50 || everyinterval(50)) {
+        x = myGameArea.canvas.width;
+        minHeight = 500;
+        maxHeight = 50;
+        height = Math.floor(Math.random() * (maxHeight - minHeight + 1) + minHeight);
+        minGap = 100;
+        maxGap = 50;
+        gap = Math.floor(Math.random() * (maxGap - minGap + 1) + minGap);
+        myObstacles.push(new component(16, 320, ["images/pillar.png"], x, (0 - height), "image"));
+        myObstacles.push(new component(16, 320, ["images/pillar.png"], x, (400 - height) + gap, "image"));
     }
+    for (var i = 0; i < myObstacles.length; i++) {
+        myObstacles[i].x += -7.5;
+        myObstacles[i].update();
+    }
+    myObstacles = myObstacles.filter(function(obstacle) {
+        return obstacle.x + obstacle.width > 0;
+    });
+    myScore.text = "Score: " + myGameArea.frameNo;
+    myScore.update();
+    
+    myGamePiece.gravity = 0.1 + myGamePiece.acceleration;
 
-    // Start drifting
-    driftParticle2();
+    myGamePiece.newPos();
+    myGamePiece.update();
 }
 
-        // Mouse function
-        function update() {
-            canvas.on('mouse:move', function(event) {
-                const mouse = canvas.getPointer(event.e);
-                const mouseX = mouse.x;
-                const mouseY = mouse.y;
-                const dx = mouseX - centerX;
-                const dy = mouseY - centerY;
-                angle = Math.atan2(dy, dx);
-                rect.set({
-                    left: centerX + radius * Math.cos(angle) - rect.width / 2,
-                    top: centerY + radius * Math.sin(angle),
-                    angle: angle * (180 / Math.PI)
-                });
-                canvas.renderAll();
-            });
-        }
+function everyinterval(n) {
+    if ((myGameArea.frameNo / n) % 1 == 0) {return true;}
+    return false;
+}
 
-        // Spawn enemies
-        dotInterval = 3000
-        blotInterval = 9999999
-        
-        setInterval(spawnDot, dotInterval);
-        setInterval(spawnBlot, blotInterval);
-        setInterval(createDriftingParticle, 300);
-        setInterval(createParticle2, 500);
-        
-        // Start the update loop
-        update();
+var keys = {};
 
-        // Animation loop
-        function animate() {
-            moveDots();
-            moveBlots();
-            requestAnimationFrame(animate);
-            blotInterval += Math.random();
-        }
-        animate();
-    </script>
+window.addEventListener('keydown', function(e) {
+    keys[e.code] = true;
+    updateAcceleration();
+});
+
+window.addEventListener('keyup', function(e) {
+    keys[e.code] = false;
+    updateAcceleration();
+});
+
+function updateAcceleration() {
+    if (keys['ArrowUp']) {
+        accelerate(-0.5);
+    } else if (keys['ArrowDown']) {
+        accelerate(0.25);
+    } else {
+        accelerate(0);
+    }
+}
+
+updateAcceleration();
+
+function accelerate(n) {
+    myGamePiece.acceleration = n;
+}
+</script>
+<br>
+<p>Use the Up and Down arrow keys to control movement.</p>
+<p>How long can you stay alive?</p>
+<button onclick="startGame()">Start Game</button>
 </body>
 </html>
