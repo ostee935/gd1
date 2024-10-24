@@ -18,15 +18,16 @@
         canvas.setBackgroundColor('#001a33', canvas.renderAll.bind(canvas));
         const centerX = canvas.width / 2;
         const centerY = canvas.height / 2;
-        const radius = 40; // Orbit radius
+        const radius = 45; // Orbit radius
+        let health = 25; // initial Health
         let angle = 0; // Initial angle
 
         // Create Shield
         const rect = new fabric.Rect({
             width: 5,
     		height: 40,
-    		fill: '#99003d',
-    		stroke: '#800033',       // Set stroke color
+    		fill: '#e6005c',
+    		stroke: '#99003d',       // Set stroke color
     		strokeWidth: 2,        // Set stroke width
     		originX: 'center',
     		originY: 'center',
@@ -56,11 +57,10 @@
 
         canvas.add(coreCircle);
         
-        // Create the core
         const cellBlob = new fabric.Circle({
-    		radius: 40,
+    		radius: (health + 20),
     		fill: '#250e25',
-    		stroke: '#371537',       // Set stroke color
+    		stroke: '#99003d',       // Set stroke color
     		strokeWidth: 3,        // Set stroke width
     		originX: 'center',
     		originY: 'center',
@@ -137,33 +137,37 @@
         }
 
         
-        // Move dots towards the core
-        function moveDots() {
-            dots.forEach((dot, index) => {
-                const dx = centerX - dot.left;
-                const dy = centerY - dot.top;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                // Normalize the direction
-                if (distance > 0) {
-                    dot.left += (dx / distance) * 2; // Adjust speed here
-                    dot.top += (dy / distance) * 2; // Adjust speed here
-                }
-                
-                // Check collision with shield
-        		if (checkCollision(rect, dot)) {
-            		canvas.remove(dot);
-            		dots.splice(index, 1);
-        		}
-
-                // Remove dot if it reaches the core
-                if (distance < coreCircle.radius) {
-                    canvas.remove(dot);
-                    dots.splice(index, 1);
-                }
-            });
-            canvas.renderAll();
+function moveDots() {
+    dots.forEach((dot, index) => {
+        const dx = centerX - dot.left;
+        const dy = centerY - dot.top;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+            dot.left += (dx / distance) * 2; // Adjust speed here
+            dot.top += (dy / distance) * 2; // Adjust speed here
         }
+
+        if (distance <= radius) {
+            const angleDot = Math.atan2(dy, dx);
+            const shieldAngle = (rect.angle / 180 * Math.PI);
+
+            console.log('Dot Angle:', angleDot, 'Shield Angle:', shieldAngle);
+
+            if (Math.abs(shieldAngle - angleDot) < Math.PI / 5) {
+                console.log('Collision detected!');
+                canvas.remove(dot);
+                dots.splice(index, 1);
+            }
+        }
+
+        if (distance < coreCircle.radius) {
+        	canvas.remove(dot);
+            dots.splice(index, 1);
+            health--;
+        }
+    });
+}
 
 		// Function to spawn a more erratic enemy
 		function spawnBlot() {
@@ -184,32 +188,39 @@
     		canvas.add(Blot);
 		}
 
-		function moveBlots() {
-    		newEnemies.forEach((enemy, index) => {
-        		const dx = centerX - enemy.left;
-        		const dy = centerY - enemy.top;
-        		const distance = Math.sqrt(dx * dx + dy * dy);
+function moveBlots() {
+    newEnemies.forEach((blot, index) => {
+        const dx = centerX - blot.left;
+        const dy = centerY - blot.top;
+        const distance = Math.sqrt(dx * dx + dy * dy);
         
-        		if (distance > 0) {
-            		enemy.left += (dx / distance) * 1;
-            		enemy.top += (dy / distance) * 1;
-            		enemy.left += Math.floor(Math.random() * 6) -2.5;
-            		enemy.top += Math.floor(Math.random() * 2) -1;
-        		}
+        if (distance > 0) {
+            blot.left += (dx / distance) * 1;
+            blot.top += (dy / distance) * 1;
+            blot.left += Math.floor(Math.random() * 6) -2.5;
+            blot.top += Math.floor(Math.random() * 2) -1;
+        }
 
-        		// Check collision with shield
-        		if (checkCollision(rect, enemy)) {
-            		canvas.remove(enemy);
-            		newEnemies.splice(index, 1);
-        		}
+        if (distance <= radius) {
+            const angleBlot = Math.atan2(dy, dx);
+            const shieldAngle = (rect.angle / 180 * Math.PI); // Convert shield angle to radians
 
-        		// Remove the new enemy if it reaches the core
-        		if (distance < coreCircle.radius) {
-            		canvas.remove(enemy);
-            		newEnemies.splice(index, 1);
-        		}
-    		});
-		}
+            console.log('Blot Angle:', angleBlot, 'Shield Angle:', shieldAngle);
+
+            if (Math.abs(shieldAngle - angleBlot) < Math.PI / 5) { // 36 degrees tolerance
+                console.log('Collision detected!');
+                canvas.remove(blot);
+                newEnemies.splice(index, 1);
+            }
+        }
+
+        if (distance < coreCircle.radius) {
+            canvas.remove(blot);
+            newEnemies.splice(index, 1);
+        }
+    });
+}
+
         
 // Function to create a drifting particle
 function createDriftingParticle() {
@@ -276,46 +287,30 @@ function createParticle2() {
 }
 
         // Mouse function
-        function update() {
-            canvas.on('mouse:move', function(event) {
-                const mouse = canvas.getPointer(event.e);
-                const mouseX = mouse.x;
-                const mouseY = mouse.y;
-                const dx = mouseX - centerX;
-                const dy = mouseY - centerY;
-                angle = Math.atan2(dy, dx);
-                rect.set({
-                    left: centerX + radius * Math.cos(angle) - rect.width / 2,
-                    top: centerY + radius * Math.sin(angle),
-                    angle: angle * (180 / Math.PI)
-                });
-                canvas.renderAll();
-            });
-        }
-        
-        // Collision with shield
-        function checkCollision(rect, circle) {
-    		const circleDistanceX = Math.abs(circle.left - rect.left);
-    		const circleDistanceY = Math.abs(circle.top - rect.top);
-    
-    		if (circleDistanceX > (rect.width / 2 + circle.radius) || 
-        		circleDistanceY > (rect.height / 2 + circle.radius)) {
-        		return false;
-    		}
-    
-    		if (circleDistanceX <= (rect.width / 2) || 
-        		circleDistanceY <= (rect.height / 2)) {
-        		return true;
-    		}
-    
-    		const cornerDistance_sq = (circleDistanceX - rect.width / 2) ** 2 + 
-            						  (circleDistanceY - rect.height / 2) ** 2;
+function update() {
+    canvas.on('mouse:move', function(event) {
+        const mouse = canvas.getPointer(event.e);
+        const mouseX = mouse.x;
+        const mouseY = mouse.y;
+        const dx = mouseX - centerX;
+        const dy = mouseY - centerY;
 
-    		return cornerDistance_sq <= (circle.radius ** 2);
-		}
+        // Calculate angle towards the mouse
+        angle = Math.atan2(dy, dx);
+
+        const shieldOffset = -45;
+        rect.set({
+            left: centerX + (shieldOffset * Math.cos(angle)) - rect.width / 2,
+            top: centerY + (shieldOffset * Math.sin(angle)),
+            angle: angle * (180 / Math.PI)
+        });
+        canvas.renderAll();
+    });
+}
+
 
         // Spawn enemies
-        dotInterval = 1000
+        dotInterval = 2000
         blotInterval = 5000
         
         setInterval(spawnDot, dotInterval);
