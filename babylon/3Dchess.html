@@ -33,7 +33,7 @@
                     const tile = BABYLON.MeshBuilder.CreateBox(`tile${row}_${col}`, {size: tileSize}, scene);
                     tile.position = new BABYLON.Vector3(row - boardSize / 2 + 0.5, 0, col - boardSize / 2 + 0.5);
                     const tileMaterial = new BABYLON.StandardMaterial(`tileMat${row}_${col}`, scene);
-                    tileMaterial.diffuseColor = (row + col) % 2 === 0 ? new BABYLON.Color3(1, 1, 1) : new BABYLON.Color3(0, 0, 0);
+                    tileMaterial.diffuseColor = (row + col) % 2 === 0 ? new BABYLON.Color3(0.88, 0.85, 0.8) : new BABYLON.Color3(0.35, 0.3, 0.25);
                     tile.material = tileMaterial;
                 }
             }
@@ -46,14 +46,31 @@
         const createPiece = (name, position, color) => {
             let piece;
             switch (name) {
-                case "pawn":
-                    piece = BABYLON.MeshBuilder.CreateSphere(name, {diameter: 0.5}, scene);
-                    break;
+        		case "pawn":
+            		piece = BABYLON.MeshBuilder.CreateSphere("pawn_base", { diameter: 0.5 }, scene);
+            		let pawn_top = BABYLON.MeshBuilder.CreateSphere("pawn_top", { diameter: 0.3 }, scene);
+            			pawn_top.position.y = 0.35; // Raise the top
+            		piece = BABYLON.Mesh.MergeMeshes([piece, pawn_top]);
+            		break;
                 case "rook":
-                    piece = BABYLON.MeshBuilder.CreateBox(name, {size: 0.5}, scene);
+                    piece = BABYLON.MeshBuilder.CreateCylinder("rook_base", { diameter: 0.4, height: 0.8 }, scene);
+                    let rook_top = BABYLON.MeshBuilder.CreateCylinder("rook_top", { diameter: 0.55, height: 0.2 }, scene);
+                    let rook_bottom = BABYLON.MeshBuilder.CreateSphere("rook_bottom", { diameter: 0.55}, scene);
+            			rook_top.position.y = 0.5;
+            		piece = BABYLON.Mesh.MergeMeshes([piece, rook_top, rook_bottom]);
                     break;
                 case "knight":
-                    piece = BABYLON.MeshBuilder.CreateCylinder(name, {diameter: 0.5, height: 1}, scene);
+                    piece = BABYLON.MeshBuilder.CreateCylinder("knight_base", { diameter: 0.4, height: 0.9 }, scene);
+                    let knight_top = BABYLON.MeshBuilder.CreateCylinder("knight_head", { diameter: 0.425, height: 0.5 }, scene);
+                    	knight_top.rotation.x = Math.PI / 4;
+                    let knight_bottom = BABYLON.MeshBuilder.CreateSphere("knight_bottom", { diameter: 0.55}, scene);
+            			knight_top.position.y = 0.5;
+            		piece = BABYLON.Mesh.MergeMeshes([piece, knight_top, knight_bottom]);
+                    
+                    // Check position and flip if on the black side
+            		if (position.z === -3.5) {
+                			piece.rotation.y = Math.PI;
+            			}
                     break;
                 case "bishop":
                     piece = BABYLON.MeshBuilder.CreateTorus(name, {diameter: 0.5, thickness: 0.15}, scene);
