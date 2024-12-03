@@ -88,36 +88,36 @@ const centralBox = {
     height: 500
 };
 
-function moveSquare(square) {
-    function loopMovement() {
-        if (!square.isMoving) { // Move only if not selected
-            const angle = Math.random() * 2 * Math.PI;
-            const distance = Math.random() * 50 + 10;
-            const delay = Math.random() * 2000 + 1000;
+        function moveSquare(square) {
+    		function loopMovement() {
+        		if (!square.isMoving) { // Move only if not selected
+            		const angle = Math.random() * 2 * Math.PI;
+            		const distance = Math.random() * 50 + 10;
+            		const delay = Math.random() * 1000 + 500;
 
-            let newLeft = square.left + Math.cos(angle) * distance;
-            let newTop = square.top + Math.sin(angle) * distance;
+            		const newLeft = Math.max(
+                		0,
+                		Math.min(canvas.width - square.width, square.left + Math.cos(angle) * distance)
+            		);
+            		const newTop = Math.max(
+                		0,
+                		Math.min(canvas.height - square.height, square.top + Math.sin(angle) * distance)
+            		);
 
-            // Constrain the movement within the center of the screen
-            newLeft = Math.max(centralBox.left, Math.min(centralBox.left + centralBox.width - square.width, newLeft));
-            newTop = Math.max(centralBox.top, Math.min(centralBox.top + centralBox.height - square.height, newTop));
-
-            square.animate(
-                { left: newLeft, top: newTop },
-                {
-                    duration: 500,
-                    onChange: canvas.renderAll.bind(canvas),
-                    onComplete: () => setTimeout(loopMovement, delay)
-                }
-            );
-            
-            if
-        } else {
-            setTimeout(loopMovement, 200);
-        }
-    }
-    loopMovement();
-}
+            		square.animate(
+                		{ left: newLeft, top: newTop },
+                		{
+                    		duration: 400,
+                    		onChange: canvas.renderAll.bind(canvas),
+                    		onComplete: () => setTimeout(loopMovement, delay) // Repeat movement after delay
+                		}
+            		);
+        		} else {
+            		setTimeout(loopMovement, 100); // Check again after a short delay if not moving
+        		}
+    		}
+    		loopMovement(); // Start the loop
+		}
 
 
         // Square Color Logic
