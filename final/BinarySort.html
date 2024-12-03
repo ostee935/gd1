@@ -26,21 +26,20 @@
             width: 800,
             height: 600,
             backgroundColor: '#f0f0f0',
-            selection: false // Disable object group selection
+            selection: false
         });
 
-		canvas.on('object:selected', function (e) {
-    		e.target.isMoving = false; // Stop movement when selected
-    		e.target.stop();
-		});
+        canvas.on('object:selected', function (e) {
+            e.target.isMoving = false;
+            e.target.stop();
+        });
 
-		canvas.on('selection:cleared', function () {
-    		canvas.getObjects().forEach(obj => {
-        		obj.isMoving = true; // Allow movement when deselected
-        		moveSquare(obj); // Restart movement if deselected
-    		});
-		});
-
+        canvas.on('selection:cleared', function () {
+            canvas.getObjects().forEach(obj => {
+                obj.isMoving = true;
+                moveSquare(obj);
+            });
+        });
 
         // Function to create squares with AI behavior
         function createAISquare(color, x, y) {
@@ -60,72 +59,112 @@
             moveSquare(square);
             return square;
         }
-        
+
         function createPen(color, x, y) {
-    		const pen = new fabric.Rect({
-        		left: x,
-        		top: y,
-        		width: 150,
-        		height: 200,
-        		fill: color,
-        		selectable: false,  // Non-selectable, so no interaction with squares
-        		hasControls: false,
-        		hasBorders: false,
-        		lockMovementX: false,
-        		lockMovementY: false,  // Allow dragging
-        		hasRotatingPoint: false
-    		});
-    		return pen;
-		}
+            const pen = new fabric.Rect({
+                left: x,
+                top: y,
+                width: 150,
+                height: 200,
+                fill: color,
+                selectable: false
+            });
+            return pen;
+        }
+        
+        const doorway = new fabric.Rect({
+            left: canvas.width / 2 - 100,
+            top: 0,
+            width: 200,
+            height: 100,
+            fill: 'black',
+            selectable: false
+        });
 
-        function moveSquare(square) {
-    		function loopMovement() {
-        		if (!square.isMoving) { // Move only if not selected
-            		const angle = Math.random() * 2 * Math.PI;
-            		const distance = Math.random() * 50 + 10;
-            		const delay = Math.random() * 1000 + 500;
+const centralBox = {
+    left: 150,
+    top: 150,
+    width: 500,
+    height: 500
+};
 
-            		const newLeft = Math.max(
-                		0,
-                		Math.min(canvas.width - square.width, square.left + Math.cos(angle) * distance)
-            		);
-            		const newTop = Math.max(
-                		0,
-                		Math.min(canvas.height - square.height, square.top + Math.sin(angle) * distance)
-            		);
+function moveSquare(square) {
+    function loopMovement() {
+        if (!square.isMoving) { // Move only if not selected
+            const angle = Math.random() * 2 * Math.PI;
+            const distance = Math.random() * 50 + 10;
+            const delay = Math.random() * 2000 + 1000;
 
-            		square.animate(
-                		{ left: newLeft, top: newTop },
-                		{
-                    		duration: 400,
-                    		onChange: canvas.renderAll.bind(canvas),
-                    		onComplete: () => setTimeout(loopMovement, delay) // Repeat movement after delay
-                		}
-            		);
-        		} else {
-            		setTimeout(loopMovement, 100); // Check again after a short delay if not moving
-        		}
-    		}
-    		loopMovement(); // Start the loop
-		}
+            let newLeft = square.left + Math.cos(angle) * distance;
+            let newTop = square.top + Math.sin(angle) * distance;
+
+            // Constrain the movement within the center of the screen
+            newLeft = Math.max(centralBox.left, Math.min(centralBox.left + centralBox.width - square.width, newLeft));
+            newTop = Math.max(centralBox.top, Math.min(centralBox.top + centralBox.height - square.height, newTop));
+
+            square.animate(
+                { left: newLeft, top: newTop },
+                {
+                    duration: 500,
+                    onChange: canvas.renderAll.bind(canvas),
+                    onComplete: () => setTimeout(loopMovement, delay)
+                }
+            );
+            
+            if
+        } else {
+            setTimeout(loopMovement, 200);
+        }
+    }
+    loopMovement();
+}
 
 
-
-        // Square Logic
+        // Square Color Logic
         const redSquare = createAISquare('red', 10, 10);
         const greenSquare = createAISquare('limegreen', 70, 10);
         const blueSquare = createAISquare('blue', 130, 10);
         const yellowSquare = createAISquare('gold', 190, 10);
         
-        // Pen Logic
-		const darkRedPen = createPen('darkred', 0, 0);
-		const darkGreenPen = createPen('darkgreen', canvas.width - 150, 0);
-		const darkBluePen = createPen('darkblue', 0, canvas.height - 200);
-		const darkYellowPen = createPen('darkgoldenrod', canvas.width - 150, canvas.height - 200);
+        // Pen Color Logic
+        const darkRedPen = createPen('darkred', 0, 0);
+        const darkGreenPen = createPen('darkgreen', canvas.width - 150, 0);
+        const darkBluePen = createPen('darkblue', 0, canvas.height - 200);
+        const darkYellowPen = createPen('darkgoldenrod', canvas.width - 150, canvas.height - 200);
 
-		// Add objects
-		canvas.add(darkRedPen, darkGreenPen, darkBluePen, darkYellowPen);
-        canvas.add(redSquare, greenSquare, blueSquare, yellowSquare);
+        // Add objects
+        canvas.add(darkRedPen, darkGreenPen, darkBluePen, darkYellowPen);
+        canvas.add(doorway);
+
+        // Wave Spawner
+        let burstCount = 0;
+        const maxBursts = 4;
+
+        function sendBurst() {
+            if (burstCount >= maxBursts) return;
+
+            // Send 4 AI squares to the center
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            for (let i = 0; i < 4; i++) {
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = 50 + Math.random() * 100;
+
+                const x = centerX + Math.cos(angle) * distance;
+                const y = centerY + Math.sin(angle) * distance;
+
+                const color = ['red', 'blue', 'limegreen', 'gold'][i];
+                const newSquare = createAISquare(color, x, y);
+
+                canvas.add(newSquare);
+            }
+
+            burstCount++;
+        }
+
+        // Trigger burst every 5 seconds
+        setInterval(sendBurst, 500);
     </script>
 </body>
 </html>
