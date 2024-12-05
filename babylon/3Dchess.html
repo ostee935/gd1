@@ -54,6 +54,13 @@
                     tile.material = tileMaterial;
                 }
             }
+            
+            // Baseplate: A large off-black rectangle below the board
+            const baseplate = BABYLON.MeshBuilder.CreateBox("baseplate", { width: boardSize + 1 * tileSize, height: 1, depth: (boardSize * tileSize) + 1 }, scene);
+            baseplate.position = new BABYLON.Vector3(0, -0.05, 0); // Positioning it slightly below the board
+            const baseplateMaterial = new BABYLON.StandardMaterial("baseplateMaterial", scene);
+            baseplateMaterial.diffuseColor = new BABYLON.Color3(0.1, 0.1, 0.1); // Off-black color
+            baseplate.material = baseplateMaterial;
 
             return scene;
         };
