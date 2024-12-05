@@ -79,14 +79,14 @@
                     break;
                     
                 case "bishop":
-                    piece = BABYLON.MeshBuilder.CreateCylinder("bish_base", { diameter: 0.27, height: 1 }, scene);
-                    let bish_top = BABYLON.MeshBuilder.CreateSphere("bish_top", { diameter: 0.35 }, scene);
-                    	bish_top.position.y = 0.65;
-                        bish_top.scaling.y = 1.4;
-                    let bish_collar = BABYLON.MeshBuilder.CreateCylinder("bish_collar", { diameter: 0.4, height: 0.05 }, scene);
-                    	bish_collar.position.y = 0.45;
-                    let bish_bottom = BABYLON.MeshBuilder.CreateSphere("bish_bottom", { diameter: 0.55}, scene);
-            		piece = BABYLON.Mesh.MergeMeshes([piece, bish_top, bish_collar, bish_bottom]);
+                    piece = BABYLON.MeshBuilder.CreateCylinder("bishop_base", { diameter: 0.27, height: 1 }, scene);
+                    let bishop_top = BABYLON.MeshBuilder.CreateSphere("bishop_top", { diameter: 0.35 }, scene);
+                    	bishop_top.position.y = 0.65;
+                        bishop_top.scaling.y = 1.4;
+                    let bishop_collar = BABYLON.MeshBuilder.CreateCylinder("bishop_collar", { diameter: 0.4, height: 0.05 }, scene);
+                    	bishop_collar.position.y = 0.45;
+                    let bishop_bottom = BABYLON.MeshBuilder.CreateSphere("bishop_bottom", { diameter: 0.55}, scene);
+            		piece = BABYLON.Mesh.MergeMeshes([piece, bishop_top, bishop_collar, bishop_bottom]);
                     break;
                     
                 case "queen":
@@ -169,16 +169,59 @@
 
         let selectedPiece = null;
 
-        scene.onPointerDown = (evt, pickResult) => {
-            if (selectedPiece) {
-                const pickedTile = pickResult.pickedMesh;
-                if (pickedTile && pickedTile.name.startsWith("tile")) {
-                    selectedPiece.position.x = pickedTile.position.x;
-                    selectedPiece.position.z = pickedTile.position.z;
-                    selectedPiece = null;
-                }
+        let movementRules = {
+    pawn: (start, end) => {
+    // Pawns can only move straight (x stays the same) and by 1 tile (z changes by ±1)
+    let dz = Math.abs(end.z - start.z);
+    let dx = Math.abs(end.x - start.x);
+    return dx === 0 && dz === 1;
+},
+    rook: (start, end) => {
+        // Rooks move straight (x or z axis).
+        return start.x === end.x || start.z === end.z;
+    },
+    knight: (start, end) => {
+        // Knights move in "L" shapes.
+        let dx = Math.abs(end.x - start.x);
+        let dz = Math.abs(end.z - start.z);
+        return (dx === 2 && dz === 1) || (dx === 1 && dz === 2);
+    },
+    bishop: (start, end) => {
+    // Bishops move diagonally: |Δx| === |Δz|
+    return Math.abs(end.x - start.x) === Math.abs(end.z - start.z);
+},
+    queen: (start, end) => {
+        // Queens move straight or diagonally.
+        return movementRules.rook(start, end) || movementRules.bishop(start, end);
+    },
+    king: (start, end) => {
+        // Kings move one square in any direction.
+        let dx = Math.abs(end.x - start.x);
+        let dz = Math.abs(end.z - start.z);
+        return dx <= 1 && dz <= 1;
+    },
+};
+
+scene.onPointerDown = (evt, pickResult) => {
+    if (selectedPiece) {
+        const pickedTile = pickResult.pickedMesh;
+        if (pickedTile && pickedTile.name.startsWith("tile")) {
+            let start = selectedPiece.position;
+            let end = pickedTile.position;
+            let type = selectedPiece.name.split("_")[0]; // Get piece type from name
+            let team = selectedPiece.team;
+
+            // Validate move
+            if (movementRules[type](start, end, team)) {
+                selectedPiece.position.x = end.x;
+                selectedPiece.position.z = end.z;
+                selectedPiece = null;
+            } else {
+                console.log("Invalid move!");
             }
-        };
+        }
+    }
+};
 
         document.getElementById("exportButton").addEventListener("click", () => {
             pieces.forEach(piece => {
