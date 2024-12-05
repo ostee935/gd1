@@ -6,23 +6,42 @@
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/stlExporter/babylon.stlExporter.min.js"></script>
     <style>
-        /* Team tracker style */
-        #teamTracker {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 24px;
-            font-weight: bold;
-            color: white;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px;
-            border-radius: 5px;
-        }
-    </style>
+    /* Team tracker style */
+    #teamTracker {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        font-size: 24px;
+        font-weight: bold;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.5);
+        padding: 10px;
+        border-radius: 5px;
+    }
+
+    /* Export button fixed to the bottom */
+    #exportButton {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        padding: 10px 20px;
+        font-size: 16px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    #exportButton:hover {
+        background-color: #45a049;
+    }
+</style>
+
 </head>
 <body>
     <canvas id="renderCanvas" style="width: 100%; height: 100%;"></canvas>
-    <button id="exportButton" style="position: absolute; top: 420px; left: 10px;">Export STL</button>
+    <button id="exportButton">Export STL</button>
     <div id="teamTracker">Current Turn: White</div>
     <script>
         const canvas = document.getElementById("renderCanvas");
@@ -232,33 +251,67 @@
         };
 
         scene.onPointerDown = (evt, pickResult) => {
-            if (selectedPiece) {
-                const pickedTile = pickResult.pickedMesh;
-                if (pickedTile && pickedTile.name.startsWith("tile")) {
-                    let start = selectedPiece.position;
-                    let end = pickedTile.position;
-                    let type = selectedPiece.name.split("_")[0]; // Get piece type from name
-                    let team = selectedPiece.team;
+    if (pickResult.pickedMesh) {
+        const pickedMesh = pickResult.pickedMesh;
 
-                    // Ensure the current team is the one selecting the piece
-                    if (team === currentTeam) {
-                        // Validate move
-                        if (movementRules[type](start, end, team)) {
-                            selectedPiece.position.x = end.x;
-                            selectedPiece.position.z = end.z;
-                            selectedPiece = null;
+        if (selectedPiece) {
+            const start = selectedPiece.position;
+            const type = selectedPiece.name.split("_")[0]; // Get piece type
+            const team = selectedPiece.team;
 
-                            // Switch turn after valid move
-                            switchTurn();
-                        } else {
-                            console.log("Invalid move!");
-                        }
-                    } else {
-                        console.log("It's not your turn!");
-                    }
+            // Check if the picked mesh is a tile or another piece
+            const end = pickedMesh.position;
+            const targetPiece = pieces.find(piece => piece.position.x === end.x && piece.position.z === end.z);
+
+            if (team === currentTeam) {
+                // Prevent capturing same-team pieces
+                if (targetPiece && targetPiece.team === team) {
+                    console.log("Cannot move to a space occupied by the same team!");
+                    return;
                 }
+
+                // Validate move
+                if (movementRules[type](start, end, team)) {
+                    if (targetPiece && targetPiece.team !== team) {
+                        // Capture opponent's piece
+                        targetPiece.dispose(); // Remove piece from the scene
+                        pieces.splice(pieces.indexOf(targetPiece), 1); // Remove from the pieces array
+
+                        if (targetPiece.name.split("_")[0] === "king") {
+                            // If the king is captured, declare the winner
+                            setTimeout(() => {
+                                alert(`${team.charAt(0).toUpperCase() + team.slice(1)} team wins!`);
+                                window.location.reload(); // Reload the page
+                            }, 100);
+                        }
+                    }
+
+                    // Move the selected piece
+                    selectedPiece.position.x = end.x;
+                    selectedPiece.position.z = end.z;
+                    selectedPiece = null;
+
+                    // Switch turn after valid move
+                    switchTurn();
+                } else {
+                    console.log("Invalid move!");
+                }
+            } else {
+                console.log("It's not your turn!");
             }
-        };
+        } else {
+            // Select a piece if none is currently selected
+            if (pickedMesh.team === currentTeam) {
+                selectedPiece = pickedMesh;
+                console.log(`Selected ${pickedMesh.name}`);
+            } else {
+                console.log("Not your piece!");
+            }
+        }
+    }
+};
+
+
 
         document.getElementById("exportButton").addEventListener("click", () => {
             pieces.forEach(piece => {
