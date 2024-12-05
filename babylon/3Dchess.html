@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -6,13 +5,30 @@
     <script src="https://cdn.babylonjs.com/babylon.js"></script>
     <script src="https://cdn.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
     <script src="https://cdn.babylonjs.com/stlExporter/babylon.stlExporter.min.js"></script>
+    <style>
+        /* Team tracker style */
+        #teamTracker {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
 </head>
 <body>
     <canvas id="renderCanvas" style="width: 100%; height: 100%;"></canvas>
-    <button id="exportButton" style="position: absolute; top: 10px; left: 10px;">Export STL</button>
+    <button id="exportButton" style="position: absolute; top: 420px; left: 10px;">Export STL</button>
+    <div id="teamTracker">Current Turn: White</div>
     <script>
         const canvas = document.getElementById("renderCanvas");
         const engine = new BABYLON.Engine(canvas, true);
+
+        let currentTeam = 'white'; // Track the current team (white or black)
 
         const createScene = () => {
             const scene = new BABYLON.Scene(engine);
@@ -202,26 +218,40 @@
     },
 };
 
-scene.onPointerDown = (evt, pickResult) => {
-    if (selectedPiece) {
-        const pickedTile = pickResult.pickedMesh;
-        if (pickedTile && pickedTile.name.startsWith("tile")) {
-            let start = selectedPiece.position;
-            let end = pickedTile.position;
-            let type = selectedPiece.name.split("_")[0]; // Get piece type from name
-            let team = selectedPiece.team;
+// Function to check whose turn it is
+        const switchTurn = () => {
+            currentTeam = currentTeam === 'white' ? 'black' : 'white';
+            document.getElementById("teamTracker").innerText = `Current Turn: ${currentTeam.charAt(0).toUpperCase() + currentTeam.slice(1)}`;
+        };
 
-            // Validate move
-            if (movementRules[type](start, end, team)) {
-                selectedPiece.position.x = end.x;
-                selectedPiece.position.z = end.z;
-                selectedPiece = null;
-            } else {
-                console.log("Invalid move!");
+        scene.onPointerDown = (evt, pickResult) => {
+            if (selectedPiece) {
+                const pickedTile = pickResult.pickedMesh;
+                if (pickedTile && pickedTile.name.startsWith("tile")) {
+                    let start = selectedPiece.position;
+                    let end = pickedTile.position;
+                    let type = selectedPiece.name.split("_")[0]; // Get piece type from name
+                    let team = selectedPiece.team;
+
+                    // Ensure the current team is the one selecting the piece
+                    if (team === currentTeam) {
+                        // Validate move
+                        if (movementRules[type](start, end, team)) {
+                            selectedPiece.position.x = end.x;
+                            selectedPiece.position.z = end.z;
+                            selectedPiece = null;
+
+                            // Switch turn after valid move
+                            switchTurn();
+                        } else {
+                            console.log("Invalid move!");
+                        }
+                    } else {
+                        console.log("It's not your turn!");
+                    }
+                }
             }
-        }
-    }
-};
+        };
 
         document.getElementById("exportButton").addEventListener("click", () => {
             pieces.forEach(piece => {
