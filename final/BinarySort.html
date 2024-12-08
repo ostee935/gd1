@@ -18,31 +18,116 @@
             border: 1px solid black;
         }
 
-        #score, #timer {
-            position: absolute;
-            font-size: 20px;
-            color: black;
-        }
+        #score, #timer, #scoreGoal {
+    position: absolute;
+    font-size: 30px; /* Larger text size */
+    font-weight: bold; /* Bold text */
+    color: black;
+}
 
-        #score {
-            top: 10px;
-            left: 10px;
-        }
+#score {
+    top: 10px;
+    left: 10px;
+}
 
-        #timer {
-            top: 10px;
-            right: 10px;
-        }
+#timer {
+    top: 10px;
+    right: 10px;
+}
+
+#scoreGoal {
+    top: 50px; /* Adjust spacing under the score */
+    left: 10px;
+}
+
+#levelSelection {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 1000; /* Ensure it appears above other elements */
+}
+
+#levelSelection h1 {
+    font-size: 50px;
+    margin-bottom: 20px;
+}
+
+#levelSelection button {
+    font-size: 25px;
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#levelSelection button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+#levelSelection button:not(:disabled) {
+    background-color: green;
+    color: white;
+}
+
+#levelSelection button:hover:not(:disabled) {
+    background-color: darkgreen;
+}
+
+
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 </head>
 <body>
     <div id="score">Score: 0</div>
     <div id="timer">Time: 1:30</div>
+    <div id="scoreGoal">Goal: 200</div>
+    
+    <div id="levelSelection">
+    <h1>Choose a Level</h1>
+    <button id="level1">Level 1</button>
+    <button id="level2" disabled>Level 2 (Locked)</button>
+    <button id="level3" disabled>Level 3 (Locked)</button>
+</div>
+
 
     <canvas id="myCanvas"></canvas>
 
     <script>
+    // Level selection logic
+const levelSelection = document.getElementById('levelSelection');
+const level1Button = document.getElementById('level1');
+const level2Button = document.getElementById('level2');
+const level3Button = document.getElementById('level3');
+
+// Function to start the game for a specific level
+function startGame(level) {
+    console.log(`Starting Level ${level}`);
+    levelSelection.style.display = 'none'; // Hide the level selection screen
+    // Customize game initialization based on the level if needed
+    if (level === 1) {
+        // Begin Level 1
+        spawnSquaresFromDoorway();
+        spawnSquaresFromDoorway();// Start spawning squares for Level 1
+        setInterval(updateTimer, 1000); // Start the timer
+    }
+}
+
+// Add event listeners to the buttons
+level1Button.addEventListener('click', () => startGame(1));
+level2Button.addEventListener('click', () => alert('Level 2 is locked!'));
+level3Button.addEventListener('click', () => alert('Level 3 is locked!'));
+
+    
         // Initialize canvas
         const canvas = new fabric.Canvas('myCanvas', {
             width: 800,
@@ -60,15 +145,26 @@
         let movementInterval;
 
         // Function to update the score
-        function updateScore() {
-            const scoreElement = document.getElementById('score');
-            scoreElement.innerText = `Score: ${score}`;
+        // Set the initial goal
+const scoreGoal = 200;
 
-            // Check if score is a multiple of 50 and spawn 2 additional waves
-            if (score >= 50 && score % 50 === 0) {
-                spawnAdditionalWaves();
-            }
-        }
+// Function to update the score and check for goal
+function updateScore() {
+    const scoreElement = document.getElementById('score');
+    const goalElement = document.getElementById('scoreGoal');
+    
+    scoreElement.innerText = `Score: ${score}`;
+    
+    if (score >= scoreGoal) {
+        scoreElement.style.color = 'green'; // Turn text green
+    }
+
+    // Check if score is a multiple of 50 and spawn additional waves
+    if (score >= 50 && score % 50 === 0) {
+        spawnAdditionalWaves();
+    }
+}
+
 
         // Function to update the timer
         function updateTimer() {
@@ -255,12 +351,20 @@
         }
 
         // Mouse click handling
-        canvas.on('mouse:up', function (e) {
-            const activeObject = canvas.getActiveObject();
-            if (activeObject && activeObject.type === 'rect') {
-                checkMatchAndDelete(activeObject);
-            }
-        });
+        canvas.on('mouse:down', function (e) {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.type === 'rect') {
+        removeSquareFromMovement(activeObject); // Stop movement
+    }
+});
+
+canvas.on('mouse:up', function (e) {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject && activeObject.type === 'rect') {
+        checkMatchAndDelete(activeObject); // Check if placed in a matching pen
+        addSquareToMovement(activeObject); // Resume movement
+    }
+});
 
         // Function to spawn squares that move out of the doorway and into the central area
         function spawnSquaresFromDoorway() {
@@ -322,10 +426,6 @@
             startIndividualMovement(square);
         }
 
-        // Call the function to spawn squares initially and on further waves
-        spawnSquaresFromDoorway();
-        spawnSquaresFromDoorway();
-
         // Function to spawn additional waves (call it when needed)
         function spawnAdditionalWaves() {
             if (countSquares() < 10) {
@@ -335,8 +435,6 @@
             }
         }
 
-        // Start the countdown timer
-        setInterval(updateTimer, 1000); // Update timer every second
     </script>
 </body>
 </html>
