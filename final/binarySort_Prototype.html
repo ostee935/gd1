@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Sort</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+</head>
+<body>
+<div id="score" style="position: absolute; top: 10px; left: 10px; font-size: 20px; color: black;">
+    Score: 0
+</div>
+
+    <canvas id="myCanvas"></canvas>
+    <script>
+        const canvas = new fabric.Canvas('myCanvas', {
+            width: 800,
+            height: 600,
+            backgroundColor: '#f0f0f0',
+            selection: false,
+            
+        });
+
+        canvas.on('object:selected', function (e) {
+            e.target.isMoving = false;
+            e.target.stop();
+        });
+
+        canvas.on('selection:cleared', function () {
+            canvas.getObjects().forEach(obj => {
+                obj.isMoving = true;
+                moveSquare(obj);
+            });
+        });
+
+        // Function to create squares with AI behavior
+        function createAISquare(color, base, x, y) {
+            const square = new fabric.Rect({
+                left: x,
+                top: y,
+                width: 50,
+                height: 60,
+                fill: color,
+                baseColor: base,
+                selectable: true,
+                hasControls: false,
+                hasBorders: false,
+                moving: true // Flag to track whether it's moving or not
+            });
+
+            moveSquare(square);
+            return square;
+        }
+
+        function createPen(color, base, x, y) {
+            const pen = new fabric.Rect({
+                left: x,
+                top: y,
+                width: 150,
+                height: 200,
+                fill: color,
+                baseColor: base,
+                selectable: false
+            });
+
+            return pen;
+        }
+
+        const doorway = new fabric.Rect({
+            left: canvas.width / 2 - 100,
+            top: 0,
+            width: 200,
+            height: 100,
+            fill: 'black',
+            selectable: false
+        });
+
+        const centralBox = {
+            left: 150,
+            top: 150,
+            width: 500,
+            height: 500
+        };
+
+        function moveSquare(square) {
+            function loopMovement() {
+                if (!square.isMoving) { // Move only if not selected
+                    const angle = Math.random() * 2 * Math.PI;
+                    const distance = Math.random() * 50 + 10;
+                    const delay = Math.random() * 1000 + 500;
+
+                    const newLeft = Math.max(
+                        0,
+                        Math.min(canvas.width - square.width, square.left + Math.cos(angle) * distance)
+                    );
+                    const newTop = Math.max(
+                        0,
+                        Math.min(canvas.height - square.height, square.top + Math.sin(angle) * distance)
+                    );
+
+                    square.animate(
+                        { left: newLeft, top: newTop },
+                        {
+                            duration: 400,
+                            onChange: canvas.renderAll.bind(canvas),
+                            onComplete: () => setTimeout(loopMovement, delay) // Repeat movement after delay
+                        }
+                    );
+                } else {
+                    setTimeout(loopMovement, 100); // Check again after a short delay if not moving
+                }
+            }
+
+            loopMovement(); // Start the loop
+        }
+
+        // Square Color Logic
+        const redSquare = createAISquare('red', 'red', 10, 10);
+        const greenSquare = createAISquare('limegreen', 'green', 70, 10);
+        const blueSquare = createAISquare('blue', 'blue', 130, 10);
+        const yellowSquare = createAISquare('gold', 'yellow', 190, 10);
+
+        // Pen Color Logic
+        const darkRedPen = createPen('darkred', 'red', 0, 0);
+        const darkGreenPen = createPen('darkgreen', 'green', canvas.width - 150, 0);
+        const darkBluePen = createPen('darkblue', 'blue', 0, canvas.height - 200);
+        const darkYellowPen = createPen('darkgoldenrod', 'yellow', canvas.width - 150, canvas.height - 200);
+
+        // Add objects
+        canvas.add(darkRedPen, darkGreenPen, darkBluePen, darkYellowPen);
+        canvas.add(doorway);
+
+let score = 0;
+let wavesSpawned = 0;
+
+function updateScore() {
+    const scoreElement = document.getElementById('score');
+    scoreElement.innerText = `Score: ${score}`;
+
+    // Check if score is a multiple of 50 and spawn 2 additional waves
+    if (score >= 50 && score % 50 === 0) {
+        // Ensure that we only spawn the additional waves once per 50 points
+        if (wavesSpawned < 2) {
+            spawnAdditionalWaves();
+            wavesSpawned++;
+        }
+    }
+}
+
+function spawnAdditionalWaves() {
+    for (let i = 0; i < 2; i++) {
+        sendBurst(); // Trigger an additional wave burst
+    }
+}
+
+
+function checkMatchAndDelete(square) {
+    const pen = canvas.getObjects().find(obj => obj.type === 'rect' && obj.baseColor === square.baseColor && obj !== square);
+
+    // Check if square is inside the pen and if baseColor matches
+    if (pen &&
+        square.left + square.width > pen.left && square.left < pen.left + pen.width &&
+        square.top + square.height > pen.top && square.top < pen.top + pen.height) {
+        // Match found, delete the square
+        canvas.remove(square);
+
+        // Increase score and update display
+        score += 10;
+        updateScore();
+    }
+}
+
+
+
+        // Wave Spawner
+        let burstCount = 0;
+        const maxBursts = 10;
+
+        function sendBurst() {
+            if (burstCount >= maxBursts) return;
+
+            // Send 4 AI squares to the center
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            for (let i = 0; i < 4; i++) {
+                const angle = Math.random() * 2 * Math.PI;
+                const distance = 50 + Math.random() * 100;
+
+                const x = centerX + Math.cos(angle) * distance;
+                const y = centerY + Math.sin(angle) * distance;
+
+                const color = ['red', 'blue', 'limegreen', 'gold'][i];
+                const base = ['red', 'blue', 'green', 'yellow'][i];
+                const newSquare = createAISquare(color, base, x, y);
+
+                canvas.add(newSquare);
+            }
+
+            burstCount++;
+        }
+
+        let initialBurstCount = 0;
+const initialMaxBursts = 3;
+
+// Trigger 3 initial bursts
+const initialBurstInterval = setInterval(() => {
+    if (initialBurstCount < initialMaxBursts) {
+        sendBurst(); // Trigger the burst
+        initialBurstCount++; // Increment the count for initial bursts
+    } else {
+        clearInterval(initialBurstInterval); // Stop the initial burst interval after 3 bursts
+    }
+}, 500); // Trigger every 500ms
+
+// Trigger future bursts at regular intervals (after initial bursts)
+setInterval(() => { // Trigger the burst
+}, 5000); // Trigger every 5 seconds for future bursts
+
+
+        // Listen for mouseup event to delete the square if it matches a pen
+        canvas.on('mouse:up', function (e) {
+            const activeObject = canvas.getActiveObject();
+            if (activeObject && activeObject.type === 'rect') {
+                checkMatchAndDelete(activeObject);
+            }
+        });
+
+    </script>
+</body>
+</html>
