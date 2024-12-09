@@ -109,41 +109,57 @@ const level1Button = document.getElementById('level1');
 const level2Button = document.getElementById('level2');
 const level3Button = document.getElementById('level3');
 
+// Level-specific time and square limit variables
+let waveTimer = 2000; // Time interval for waves (in milliseconds), set to 2 seconds for now
+let maxSquares = 10; // Max squares for level 1 (initial value, will change per level)
+
 // Function to start the game for a specific level
 function startGame(level) {
     console.log(`Starting Level ${level}`);
     levelSelection.style.display = 'none'; // Hide the level selection screen
-    
-    // Customize game initialization based on the level if needed
+
+    // Customize game settings based on level
     const levelConfig = {
-        1: { scoreGoal: 200, timer: 90 },
-        2: { scoreGoal: 300, timer: 60 },
-        3: { scoreGoal: 500, timer: 45 },
+        1: { scoreGoal: 200, timer: 90, waveTimer: 2000, maxSquares: 10 },  // 10 squares max
+        2: { scoreGoal: 300, timer: 60, waveTimer: 2000, maxSquares: 15 },  // 15 squares max
+        3: { scoreGoal: 500, timer: 45, waveTimer: 2000, maxSquares: 20 },  // 20 squares max
     };
 
-    const { scoreGoal: goal, timer: time } = levelConfig[level];
+    const { scoreGoal: goal, timer: time, waveTimer: levelWaveTimer, maxSquares: levelMaxSquares } = levelConfig[level];
     score = 0; // Reset score
     timer = time; // Set level-specific timer
-    updateScore(goal); // Reset and display the new score
+    waveTimer = levelWaveTimer; // Set level-specific wave timer
+    maxSquares = levelMaxSquares; // Set level-specific max squares
+
+    updateScore(goal); // Pass the current level's goal to update the score display
     updateTimer(); // Display the initial time
 
     // Update the score goal display
     document.getElementById('scoreGoal').innerText = `Goal: ${goal}`;
-    scoreGoal = goal; // Ensure scoreGoal is set to the correct level goal
 
+    // Start the wave spawning timer
+    spawnInterval = setInterval(() => {
+        if (countSquares() < maxSquares) {
+            spawnSquaresFromDoorway(); // Only spawn if below max limit
+        }
+    }, waveTimer); // Start spawning waves based on the waveTimer
+
+    // Optionally spawn squares right after the game starts
     spawnSquaresFromDoorway();
     setTimeout(() => spawnSquaresFromDoorway(), 500);
-    setInterval(updateTimer, 1000); // Start the timer
+    setInterval(updateTimer, 1000); // Start the main timer
 }
 
+// Function to count the squares currently on the canvas
+function countSquares() {
+    return canvas.getObjects().filter(obj => obj.type === 'rect' && obj.width === 50 && obj.height === 60).length;
+}
 
 // Add event listeners to the buttons
 level1Button.addEventListener('click', () => startGame(1));
 level2Button.addEventListener('click', () => startGame(2));
 level3Button.addEventListener('click', () => startGame(3));
 
-
-    
         // Initialize canvas
         const canvas = new fabric.Canvas('myCanvas', {
             width: 800,
@@ -174,12 +190,8 @@ function updateScore(goal) {
     } else {
         scoreElement.style.color = 'black'; // Reset color if not yet at goal
     }
-
-    // Check if score is a multiple of 50 and spawn additional waves
-    if (score >= 50 && score % 50 === 0) {
-        spawnAdditionalWaves();
-    }
 }
+
 
 
         // Function to update the timer
@@ -350,7 +362,27 @@ function updateScore(goal) {
         canvas.add(darkRedPen, darkGreenPen, darkBluePen, darkYellowPen);
         canvas.add(doorway);
 
-// Check for matches and delete matched squares
+// Function to flash the score in red and black
+function flashScore() {
+    const scoreElement = document.getElementById('score');
+    let flashCount = 0;
+    const flashInterval = setInterval(() => {
+        // Toggle score color between red and black
+        scoreElement.style.color = scoreElement.style.color === 'red' ? 'black' : 'red';
+        flashCount++;
+
+        // Stop flashing after 3 toggles (flashing 1.5 times)
+        if (flashCount >= 6) {
+            clearInterval(flashInterval);
+            // If the score is negative, keep it red
+            if (score < 0) {
+                scoreElement.style.color = 'red';
+            }
+        }
+    }, 250); // Change color every 250ms
+}
+
+// Check for matches and delete matched squares with added penalty and flashing score
 function checkMatchAndDelete(square) {
     // Find the pen the square is placed in
     const pen = canvas.getObjects().find(obj =>
@@ -373,10 +405,14 @@ function checkMatchAndDelete(square) {
         score -= 20; // Decrease score as penalty
         updateScore(scoreGoal); // Update the score with penalty
         
+        // Flash the score when points are lost
+        flashScore();
+
         // Spawn a new wave of squares of the wrong color
         spawnPenaltyWave(wrongPenColor);
     }
 }
+
 
 
         // Mouse click handling
@@ -396,6 +432,11 @@ canvas.on('mouse:up', function (e) {
 });
 
 function spawnSquaresFromDoorway() {
+    if (countSquares() >= maxSquares) {
+        console.log("Max squares reached, holding wave spawn.");
+        return; // Don't spawn new squares if the max limit is reached
+    }
+
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
 
