@@ -95,15 +95,15 @@
     <div id="levelSelection">
     <h1>Choose a Level</h1>
     <button id="level1">Level 1</button>
-    <button id="level2" disabled>Level 2 (Locked)</button>
-    <button id="level3" disabled>Level 3 (Locked)</button>
+    <button id="level2">Level 2</button>
+    <button id="level3">Level 3</button>
 </div>
 
 
     <canvas id="myCanvas"></canvas>
 
     <script>
-    // Level selection logic
+// Level selection logic
 const levelSelection = document.getElementById('levelSelection');
 const level1Button = document.getElementById('level1');
 const level2Button = document.getElementById('level2');
@@ -113,19 +113,37 @@ const level3Button = document.getElementById('level3');
 function startGame(level) {
     console.log(`Starting Level ${level}`);
     levelSelection.style.display = 'none'; // Hide the level selection screen
-    // Customize game initialization based on the level if needed
-    if (level === 1) {
-        // Begin Level 1
-        spawnSquaresFromDoorway();
-        spawnSquaresFromDoorway();// Start spawning squares for Level 1
-        setInterval(updateTimer, 1000); // Start the timer
-    }
+
+    // Customize game initialization based on the level
+    const levelConfig = {
+        1: { scoreGoal: 200, timer: 90 },
+        2: { scoreGoal: 300, timer: 60 },
+        3: { scoreGoal: 500, timer: 45 },
+    };
+
+    // Set the global scoreGoal
+    const { scoreGoal, timer: time } = levelConfig[level];
+    window.scoreGoal = scoreGoal;  // Store the scoreGoal globally
+    score = 0; // Reset score
+    timer = time; // Set level-specific timer
+
+    updateScore(); // Reset and display the new score
+    updateTimer(); // Display the initial time
+
+    // Update the score goal display
+    document.getElementById('scoreGoal').innerText = `Goal: ${scoreGoal}`;
+
+    spawnSquaresFromDoorway();
+    setTimeout(() => spawnSquaresFromDoorway(), 500);
+    setInterval(updateTimer, 1000); // Start the timer
 }
 
 // Add event listeners to the buttons
 level1Button.addEventListener('click', () => startGame(1));
-level2Button.addEventListener('click', () => alert('Level 2 is locked!'));
-level3Button.addEventListener('click', () => alert('Level 3 is locked!'));
+level2Button.addEventListener('click', () => startGame(2));
+level3Button.addEventListener('click', () => startGame(3));
+
+
 
     
         // Initialize canvas
@@ -146,17 +164,18 @@ level3Button.addEventListener('click', () => alert('Level 3 is locked!'));
 
         // Function to update the score
         // Set the initial goal
-const scoreGoal = 200;
+let scoreGoal = 200;
 
 // Function to update the score and check for goal
 function updateScore() {
     const scoreElement = document.getElementById('score');
-    const goalElement = document.getElementById('scoreGoal');
-    
     scoreElement.innerText = `Score: ${score}`;
     
-    if (score >= scoreGoal) {
+    // Check if the score has reached or exceeded the goal
+    if (score >= window.scoreGoal) {
         scoreElement.style.color = 'green'; // Turn text green
+    } else {
+        scoreElement.style.color = 'black'; // Reset color if goal not reached
     }
 
     // Check if score is a multiple of 50 and spawn additional waves
@@ -164,7 +183,6 @@ function updateScore() {
         spawnAdditionalWaves();
     }
 }
-
 
         // Function to update the timer
         function updateTimer() {
@@ -366,59 +384,68 @@ canvas.on('mouse:up', function (e) {
     }
 });
 
-        // Function to spawn squares that move out of the doorway and into the central area
-        function spawnSquaresFromDoorway() {
-            // Check if the total number of squares on the canvas is less than 10
-            if (countSquares() < 10) {
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
+function spawnSquaresFromDoorway() {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
 
-                const spawnCount = 4; // Number of squares to spawn per wave
-                const spacingX = 60; // Space between squares horizontally within the doorway
-                const spacingY = 0; // Space between squares vertically within the doorway
+    // Randomly decide whether to spawn 3 or 4 squares
+    const spawnCount = Math.random() < 0.5 ? 3 : 4;
 
-                // Loop to spawn squares inside the doorway
-                for (let i = 0; i < spawnCount; i++) {
-                    // Calculate the position of the square inside the doorway
-                    const spawnX = -20 + doorway.left + (i * spacingX) + (spacingX / 2); // Evenly spaced horizontally within the doorway
-                    const spawnY = 30 + doorway.top + (i * spacingY) + (spacingY / 2); // Evenly spaced vertically within the doorway
+    // Define linked color pairs
+    const colorPairs = [
+        { fill: 'red', base: 'red' },
+        { fill: 'blue', base: 'blue' },
+        { fill: 'limegreen', base: 'green' },
+        { fill: 'gold', base: 'yellow' }
+    ];
 
-                    // Choose a color and base color for each square
-                    const color = ['red', 'blue', 'limegreen', 'gold'][i];
-                    const base = ['red', 'blue', 'green', 'yellow'][i];
-
-                    // Create the square with the calculated position inside the doorway
-                    const square = new fabric.Rect({
-                        left: spawnX,
-                        top: spawnY,
-                        width: 50,
-                        height: 60,
-                        fill: color,
-                        baseColor: base,
-                        selectable: true,
-                        hasControls: false,
-                        hasBorders: false,
-                    });
-
-                    // Adjust the animation target to spread squares farther apart
-                    const targetX = centerX + Math.random() * 200 - 100; // Spread horizontally (larger range)
-                    const targetY = centerY + Math.random() * 200 - 100; // Spread vertically (larger range)
-
-                    square.animate({
-                        left: targetX,
-                        top: targetY
-                    }, {
-                        duration: 1000,
-                        onChange: canvas.renderAll.bind(canvas),
-                        onComplete: function () {
-                            addSquareToMovement(square); // Start square movement after animation
-                        }
-                    });
-
-                    canvas.add(square);
-                }
-            }
+    // Shuffle the color pairs array to ensure randomness
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
         }
+        return array;
+    }
+
+    shuffle(colorPairs);
+
+    // Spawn the squares
+    for (let i = 0; i < spawnCount; i++) {
+        const { fill, base } = colorPairs[i];
+        const spawnX = doorway.left + doorway.width / 2 + Math.random() * 40 - 20; // Randomize X position a bit
+        const spawnY = doorway.top + 10; // Slight offset from the top of the doorway
+
+        const square = new fabric.Rect({
+            left: spawnX,
+            top: spawnY,
+            width: 50,
+            height: 60,
+            fill: fill,
+            baseColor: base,
+            selectable: true,
+            hasControls: false,
+            hasBorders: false,
+        });
+
+        const targetX = centerX + Math.random() * 200 - 100; // Spread horizontally
+        const targetY = centerY + Math.random() * 200 - 100; // Spread vertically
+
+        square.animate({
+            left: targetX,
+            top: targetY
+        }, {
+            duration: 1000,
+            onChange: canvas.renderAll.bind(canvas),
+            onComplete: function () {
+                addSquareToMovement(square); // Start square movement after animation
+            }
+        });
+
+        canvas.add(square);
+    }
+}
+
 
         // Function to start square movement
         function addSquareToMovement(square) {
