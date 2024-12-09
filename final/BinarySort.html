@@ -113,36 +113,34 @@ const level3Button = document.getElementById('level3');
 function startGame(level) {
     console.log(`Starting Level ${level}`);
     levelSelection.style.display = 'none'; // Hide the level selection screen
-
-    // Customize game initialization based on the level
+    
+    // Customize game initialization based on the level if needed
     const levelConfig = {
         1: { scoreGoal: 200, timer: 90 },
         2: { scoreGoal: 300, timer: 60 },
         3: { scoreGoal: 500, timer: 45 },
     };
 
-    // Set the global scoreGoal
-    const { scoreGoal, timer: time } = levelConfig[level];
-    window.scoreGoal = scoreGoal;  // Store the scoreGoal globally
+    const { scoreGoal: goal, timer: time } = levelConfig[level];
     score = 0; // Reset score
     timer = time; // Set level-specific timer
-
-    updateScore(); // Reset and display the new score
+    updateScore(goal); // Reset and display the new score
     updateTimer(); // Display the initial time
 
     // Update the score goal display
-    document.getElementById('scoreGoal').innerText = `Goal: ${scoreGoal}`;
+    document.getElementById('scoreGoal').innerText = `Goal: ${goal}`;
+    scoreGoal = goal; // Ensure scoreGoal is set to the correct level goal
 
     spawnSquaresFromDoorway();
     setTimeout(() => spawnSquaresFromDoorway(), 500);
     setInterval(updateTimer, 1000); // Start the timer
 }
 
+
 // Add event listeners to the buttons
 level1Button.addEventListener('click', () => startGame(1));
 level2Button.addEventListener('click', () => startGame(2));
 level3Button.addEventListener('click', () => startGame(3));
-
 
 
     
@@ -167,15 +165,14 @@ level3Button.addEventListener('click', () => startGame(3));
 let scoreGoal = 200;
 
 // Function to update the score and check for goal
-function updateScore() {
+function updateScore(goal) {
     const scoreElement = document.getElementById('score');
     scoreElement.innerText = `Score: ${score}`;
     
-    // Check if the score has reached or exceeded the goal
-    if (score >= window.scoreGoal) {
-        scoreElement.style.color = 'green'; // Turn text green
+    if (score >= goal) {
+        scoreElement.style.color = 'green'; // Turn text green when score reaches goal
     } else {
-        scoreElement.style.color = 'black'; // Reset color if goal not reached
+        scoreElement.style.color = 'black'; // Reset color if not yet at goal
     }
 
     // Check if score is a multiple of 50 and spawn additional waves
@@ -183,6 +180,7 @@ function updateScore() {
         spawnAdditionalWaves();
     }
 }
+
 
         // Function to update the timer
         function updateTimer() {
@@ -352,21 +350,34 @@ function updateScore() {
         canvas.add(darkRedPen, darkGreenPen, darkBluePen, darkYellowPen);
         canvas.add(doorway);
 
-        // Check for matches and delete matched squares
-        function checkMatchAndDelete(square) {
-            const pen = canvas.getObjects().find(obj =>
-                obj.type === 'rect' && obj.baseColor === square.baseColor && obj !== square
-            );
+// Check for matches and delete matched squares
+function checkMatchAndDelete(square) {
+    // Find the pen the square is placed in
+    const pen = canvas.getObjects().find(obj =>
+        obj.type === 'rect' && obj.baseColor === square.baseColor && obj !== square
+    );
 
-            if (pen &&
-                square.left + square.width > pen.left && square.left < pen.left + pen.width &&
-                square.top + square.height > pen.top && square.top < pen.top + pen.height) {
-                removeSquareFromMovement(square); // Remove from movement list
-                canvas.remove(square);
-                score += 10;
-                updateScore();
-            }
-        }
+    // If square is placed in a matching pen
+    if (pen &&
+        square.left + square.width > pen.left && square.left < pen.left + pen.width &&
+        square.top + square.height > pen.top && square.top < pen.top + pen.height) {
+        removeSquareFromMovement(square); // Remove from movement list
+        canvas.remove(square);
+        score += 10; // Correct placement score
+        updateScore(scoreGoal); // Update score with correct placement
+    } else {
+        // If square is placed in the wrong pen
+        const wrongPenColor = square.baseColor; // Color of the offending square
+        removeSquareFromMovement(square); // Remove from movement list
+        canvas.remove(square); // Remove square from canvas
+        score -= 20; // Decrease score as penalty
+        updateScore(scoreGoal); // Update the score with penalty
+        
+        // Spawn a new wave of squares of the wrong color
+        spawnPenaltyWave(wrongPenColor);
+    }
+}
+
 
         // Mouse click handling
         canvas.on('mouse:down', function (e) {
@@ -430,6 +441,55 @@ function spawnSquaresFromDoorway() {
 
         const targetX = centerX + Math.random() * 200 - 100; // Spread horizontally
         const targetY = centerY + Math.random() * 200 - 100; // Spread vertically
+
+        square.animate({
+            left: targetX,
+            top: targetY
+        }, {
+            duration: 1000,
+            onChange: canvas.renderAll.bind(canvas),
+            onComplete: function () {
+                addSquareToMovement(square); // Start square movement after animation
+            }
+        });
+
+        canvas.add(square);
+    }
+}
+
+// Function to spawn a penalty wave of squares of the wrong color
+function spawnPenaltyWave(color) {
+    // Determine spawn count (2-3 squares)
+    const spawnCount = Math.random() < 0.5 ? 2 : 3;
+    const colorPairs = {
+        red: { fill: 'red', base: 'red' },
+        blue: { fill: 'blue', base: 'blue' },
+        green: { fill: 'limegreen', base: 'green' },
+        yellow: { fill: 'gold', base: 'yellow' }
+    };
+
+    // Get the pair for the wrong color
+    const { fill, base } = colorPairs[color];
+
+    // Randomize spawn positions around the doorway
+    for (let i = 0; i < spawnCount; i++) {
+        const spawnX = doorway.left + doorway.width / 2 + Math.random() * 40 - 20; // Randomize X position a bit
+        const spawnY = doorway.top + 10; // Slight offset from the top of the doorway
+
+        const square = new fabric.Rect({
+            left: spawnX,
+            top: spawnY,
+            width: 50,
+            height: 60,
+            fill: fill,
+            baseColor: base,
+            selectable: true,
+            hasControls: false,
+            hasBorders: false,
+        });
+
+        const targetX = canvas.width / 2 + Math.random() * 200 - 100; // Spread horizontally
+        const targetY = canvas.height / 2 + Math.random() * 200 - 100; // Spread vertically
 
         square.animate({
             left: targetX,
