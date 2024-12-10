@@ -20,8 +20,8 @@
 
         #score, #timer, #scoreGoal {
             position: absolute;
-            font-size: 30px; /* Larger text size */
-            font-weight: bold; /* Bold text */
+            font-size: 30px;
+            font-weight: bold;
             color: black;
         }
 
@@ -36,7 +36,7 @@
         }
 
         #scoreGoal {
-            top: 50px; /* Adjust spacing under the score */
+            top: 50px;
             left: 10px;
         }
 
@@ -46,13 +46,13 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+            background-color: rgba(0, 0, 0, 0.8);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
-            z-index: 1000; /* Ensure it appears above other elements */
+            z-index: 1000;
         }
 
         #levelSelection h1 {
@@ -89,72 +89,135 @@
     <div id="score">Score: 0</div>
     <div id="timer">Time: 1:30</div>
     <div id="scoreGoal">Goal: 200</div>
-
     <div id="levelSelection">
         <h1>Choose a Level</h1>
         <button id="level1">Level 1</button>
         <button id="level2">Level 2</button>
         <button id="level3">Level 3</button>
     </div>
-
     <canvas id="myCanvas"></canvas>
 
     <script>
+        // Original code initialization and game logic remain unchanged
+
         const canvas = new fabric.Canvas('myCanvas', {
             width: 800,
             height: 600,
             selection: false,
         });
 
-        // Load background image
+        // Set the background image
         fabric.Image.fromURL('Background.jpg', function(img) {
             img.set({
-                left: 0,
-                top: 0,
-                selectable: false,
-                hasControls: false,
+                selectable: false
             });
-            img.scaleToWidth(canvas.width);
-            img.scaleToHeight(canvas.height);
             canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
         });
 
-        // Function to load a pen image
-        function createPenImage(url, x, y, width, height) {
-            fabric.Image.fromURL(url, function(img) {
+        // Function to create pens with images
+        function createImagePen(imageUrl, x, y) {
+            fabric.Image.fromURL(imageUrl, function(img) {
                 img.set({
                     left: x,
                     top: y,
-                    selectable: false,
-                    hasControls: false,
+                    width: 150,
+                    height: 200,
+                    selectable: false
                 });
-                img.scaleToWidth(width);
-                img.scaleToHeight(height);
                 canvas.add(img);
             });
         }
 
-        // Add pen images
-        createPenImage('Red Pen.jpg', 0, 0, 150, 200);
-        createPenImage('Blue Pen.jpg', canvas.width - 150, 0, 150, 200);
-        createPenImage('Yellow Pen.jpg', 0, canvas.height - 200, 150, 200);
-        createPenImage('Green Pen.jpg', canvas.width - 150, canvas.height - 200, 150, 200);
+        // Add the four pens using images
+        createImagePen('Red Pen.jpg', 0, 0);
+        createImagePen('Green Pen.jpg', canvas.width - 150, 0);
+        createImagePen('Blue Pen.jpg', 0, canvas.height - 200);
+        createImagePen('Yellow Pen.jpg', canvas.width - 150, canvas.height - 200);
 
-        // Doorway for square spawning
-        const doorway = new fabric.Rect({
-            left: canvas.width / 2 - 125,
-            top: 0,
-            width: 250,
-            height: 100,
-            fill: 'black',
-            selectable: false,
-        });
-        canvas.add(doorway);
+       <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Sort</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
 
-        // Add remaining game logic here...
-    </script>
-</body>
-</html>
+        canvas {
+            border: 1px solid black;
+        }
+
+        #score, #timer, #scoreGoal {
+    position: absolute;
+    font-size: 30px; /* Larger text size */
+    font-weight: bold; /* Bold text */
+    color: black;
+}
+
+#score {
+    top: 10px;
+    left: 10px;
+}
+
+#timer {
+    top: 10px;
+    right: 10px;
+}
+
+#scoreGoal {
+    top: 50px; /* Adjust spacing under the score */
+    left: 10px;
+}
+
+#levelSelection {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8); /* Semi-transparent black */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    z-index: 1000; /* Ensure it appears above other elements */
+}
+
+#levelSelection h1 {
+    font-size: 50px;
+    margin-bottom: 20px;
+}
+
+#levelSelection button {
+    font-size: 25px;
+    padding: 10px 20px;
+    margin: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#levelSelection button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}
+
+#levelSelection button:not(:disabled) {
+    background-color: green;
+    color: white;
+}
+
+#levelSelection button:hover:not(:disabled) {
+    background-color: darkgreen;
+}
 
 
     </style>
@@ -188,7 +251,7 @@ let maxSquares = 10; // Max squares for level 1 (initial value, will change per 
 
 // Function to start the game for a specific level
 function startGame(level) {
-    console.log(`Starting Level ${level}`);
+    console.log(Starting Level ${level});
     levelSelection.style.display = 'none'; // Hide the level selection screen
 
     // Customize game settings based on level
@@ -208,7 +271,7 @@ function startGame(level) {
     updateTimer(); // Display the initial time
 
     // Update the score goal display
-    document.getElementById('scoreGoal').innerText = `Goal: ${goal}`;
+    document.getElementById('scoreGoal').innerText = Goal: ${goal};
 
     // Start the wave spawning timer
     spawnInterval = setInterval(() => {
@@ -256,7 +319,7 @@ let scoreGoal = 200;
 // Function to update the score and check for goal
 function updateScore(goal) {
     const scoreElement = document.getElementById('score');
-    scoreElement.innerText = `Score: ${score}`;
+    scoreElement.innerText = Score: ${score};
     
     if (score >= goal) {
         scoreElement.style.color = 'green'; // Turn text green when score reaches goal
@@ -272,7 +335,7 @@ function updateScore(goal) {
             const timerElement = document.getElementById('timer');
             const minutes = Math.floor(timer / 60);
             const seconds = timer % 60;
-            timerElement.innerText = `Time: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            timerElement.innerText = Time: ${minutes}:${seconds < 10 ? '0' : ''}${seconds};
 
             if (timer > 0 && !gamePaused) {
                 timer--;
@@ -636,6 +699,9 @@ function spawnPenaltyWave(color) {
             }
         }
 
+    </script>
+</body>
+</html>
     </script>
 </body>
 </html>
