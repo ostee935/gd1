@@ -99,38 +99,35 @@
     <button id="level3">Level 3</button>
 </div>
 
-  <!-- Add audio element -->
+ <!-- Audio element -->
     <audio id="backgroundMusic" loop>
-        <source id="audioSource" src="" type="audio/mpeg">
+        <source src="Powerup (Level 1).mp3" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
+
 
     <canvas id="myCanvas"></canvas>
 
     <script>
 
-          // Music element
+           // Music element
         const backgroundMusic = document.getElementById('backgroundMusic');
-        const audioSource = document.getElementById('audioSource');
         
-      // Function to play music
-        function playMusic(song) {
-            audioSource.src = song; // Set the song source
-            backgroundMusic.load(); // Reload the audio element to apply the new source
+     // Function to play music
+        function playMusic() {
             backgroundMusic.play()
-                .then(() => console.log(`Playing: ${song}`))
+                .then(() => console.log("Playing Level 1 Music"))
                 .catch(error => {
                     console.error("Error playing music:", error);
                     alert("Browser blocked autoplay. Please click on the game to enable audio.");
                 });
         }
-
+        
         // Function to stop music
         function stopMusic() {
             backgroundMusic.pause();
             backgroundMusic.currentTime = 0; // Reset playback
         }
-
         
 // Level selection logic
 const levelSelection = document.getElementById('levelSelection');
@@ -146,6 +143,8 @@ let maxSquares = 10; // Max squares for level 1 (initial value, will change per 
 function startGame(level) {
     console.log(`Starting Level ${level}`);
     levelSelection.style.display = 'none'; // Hide the level selection screen
+
+ playMusic();
 
     // Customize game settings based on level
     const levelConfig = {
