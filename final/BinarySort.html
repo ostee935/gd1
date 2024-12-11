@@ -309,23 +309,46 @@ function updateScore(goal) {
         }
 
         // Function to create AI square
-        function createAISquare(color, base, x, y) {
-            const square = new fabric.Rect({
-                left: x,
-                top: y,
-                width: 50,
-                height: 60,
-                fill: color,
-                baseColor: base,
+        // Function to create AI square with image or color fallback
+function createAISquare(color, base, x, y) {
+    const imagePath = `Assets/${base}.png`; // Path to the image
+    const square = new fabric.Rect({
+        left: x,
+        top: y,
+        width: 50,
+        height: 60,
+        fill: color, // Use fill as a placeholder
+        baseColor: base,
+        selectable: true,
+        hasControls: false,
+        hasBorders: false,
+    });
+
+    // Try to load the image
+    fabric.Image.fromURL(imagePath, (img) => {
+        if (img) {
+            img.set({
+                left: square.left,
+                top: square.top,
+                width: square.width,
+                height: square.height,
                 selectable: true,
                 hasControls: false,
                 hasBorders: false,
             });
-
-            addSquareToMovement(square); // Add square to movement list
-            startIndividualMovement(square); // Start individual movement
-            return square;
+            canvas.remove(square); // Remove the placeholder
+            canvas.add(img); // Add the image square
+            addSquareToMovement(img); // Add to movement
+            startIndividualMovement(img); // Start movement
+        } else {
+            console.warn(`Failed to load image: ${imagePath}`);
         }
+    });
+
+    addSquareToMovement(square); // Add placeholder to movement
+    startIndividualMovement(square); // Start placeholder movement
+    return square;
+}
 
         // Function to create pens
         function createPen(color, base, x, y) {
