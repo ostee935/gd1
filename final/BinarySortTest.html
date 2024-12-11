@@ -160,38 +160,6 @@ level1Button.addEventListener('click', () => startGame(1));
 level2Button.addEventListener('click', () => startGame(2));
 level3Button.addEventListener('click', () => startGame(3));
 
-
-        // Function to play background music for each level
-function playBackgroundMusic(level) {
-    let audio;
-    if (level === 1) {
-        audio = new Audio("Powerup (Level 1).mp3");
-    } else if (level === 2) {
-        audio = new Audio("Rocket (Level 2).mp3");
-    } else if (level === 3) {
-        audio = new Audio("MX 7000 (Level 3).mp3");
-    }
-
-    // Play the song (not looping)
-    if (audio) {
-        audio.play();
-    }
-}
-
-// Example usage: Call this function when the level button is clicked
-document.getElementById("level1Button").addEventListener("click", function() {
-    playBackgroundMusic(1);
-});
-
-document.getElementById("level2Button").addEventListener("click", function() {
-    playBackgroundMusic(2);
-});
-
-document.getElementById("level3Button").addEventListener("click", function() {
-    playBackgroundMusic(3);
-});
-
-        
         // Initialize canvas
         const canvas = new fabric.Canvas('myCanvas', {
             width: 800,
