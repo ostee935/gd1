@@ -99,18 +99,17 @@
     <button id="level3">Level 3</button>
 </div>
 
- <!-- Add audio element -->
+<!-- Add audio element -->
     <audio id="backgroundMusic" loop>
         <source id="audioSource" src="" type="audio/mpeg">
         Your browser does not support the audio element.
     </audio>
 
-
     <canvas id="myCanvas"></canvas>
 
     <script>
 
-         // Music element
+        // Music element
         const backgroundMusic = document.getElementById('backgroundMusic');
         const audioSource = document.getElementById('audioSource');
 
@@ -118,19 +117,15 @@
         function playMusic(song) {
             audioSource.src = song; // Set the song source
             backgroundMusic.load(); // Reload the audio element to apply the new source
-            backgroundMusic.play()
-                .then(() => console.log(`Playing: ${song}`))
-                .catch(error => {
-                    console.error("Error playing music:", error);
-                    alert("Browser blocked autoplay. Please click on the game to enable audio.");
-                });
+            backgroundMusic.play().catch(error => console.log("Error playing music:", error));
         }
-        
-        // Function to stop music
+
+       // Function to stop music
         function stopMusic() {
             backgroundMusic.pause();
             backgroundMusic.currentTime = 0; // Reset playback
         }
+
         
 // Level selection logic
 const levelSelection = document.getElementById('levelSelection');
@@ -171,14 +166,15 @@ function startGame(level) {
                 3: "MX 7000 (Level 3).mp3",
             };
 
-            // Start music
-            playMusic(songs[level]);
-    
+            
     const { scoreGoal: goal, timer: time, waveTimer: levelWaveTimer, maxSquares: levelMaxSquares } = levelConfig[level];
     score = 0; // Reset score
     timer = time; // Set level-specific timer
     waveTimer = levelWaveTimer; // Set level-specific wave timer
     maxSquares = levelMaxSquares; // Set level-specific max squares
+    
+    // Start music
+            playMusic(songs[level]);
     
 
     updateScore(goal); // Pass the current level's goal to update the score display
