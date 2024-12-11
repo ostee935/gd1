@@ -113,6 +113,24 @@ const level3Button = document.getElementById('level3');
 let waveTimer = 2000; // Time interval for waves (in milliseconds), set to 2 seconds for now
 let maxSquares = 10; // Max squares for level 1 (initial value, will change per level)
 
+// Path to the image
+    const imagePath = "Assets/yellow.png";
+
+    // Function to load and add the image
+    fabric.Image.fromURL(imagePath, function(img) {
+        if (img) {
+            img.set({
+                left: 200,  // Set the position of the image
+                top: 200,   // Set the position of the image
+                width: 100, // Optional: Resize the image
+                height: 100 // Optional: Resize the image
+            });
+            canvas.add(img); // Add the image to the canvas
+        } else {
+            console.error("Failed to load image.");
+        }
+    });
+        
 // Function to start the game for a specific level
 function startGame(level) {
     console.log(`Starting Level ${level}`);
