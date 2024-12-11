@@ -259,6 +259,9 @@ function updateScore(goal) {
             alert('Time is up! The game is frozen.');
         }
 
+        // Stop music
+            stopMusic();
+
         // Function to add square to movement
         function addSquareToMovement(square) {
             movingSquares.push(square);
