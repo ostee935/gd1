@@ -328,6 +328,7 @@ function updateScore(goal) {
 
         // Function to create AI square
         // Function to create AI square with image or color fallback
+// Function to create AI square with image or color fallback
 function createAISquare(color, base, x, y) {
     const imagePath = `Assets/${base}.png`; // Path to the image
     const square = new fabric.Rect({
@@ -335,12 +336,47 @@ function createAISquare(color, base, x, y) {
         top: y,
         width: 50,
         height: 60,
-        fill: color, // Use fill as a placeholder
+        fill: color, // Placeholder color
         baseColor: base,
         selectable: true,
         hasControls: false,
         hasBorders: false,
     });
+
+    // Add the placeholder to the canvas
+    canvas.add(square);
+
+    // Try to load the image
+    fabric.Image.fromURL(imagePath, (img) => {
+        if (img) {
+            // Set image properties to match the square
+            img.set({
+                left: square.left,
+                top: square.top,
+                width: square.width,
+                height: square.height,
+                selectable: true,
+                hasControls: false,
+                hasBorders: false,
+            });
+
+            // Replace the placeholder with the image
+            canvas.remove(square); // Remove the placeholder
+            canvas.add(img); // Add the image
+            addSquareToMovement(img); // Add to movement logic
+            startIndividualMovement(img); // Start image movement
+        } else {
+            console.warn(`Failed to load image: ${imagePath}`);
+        }
+    }, { crossOrigin: 'Anonymous' }); // Allow cross-origin image loading
+
+    // Add the placeholder to movement as fallback
+    addSquareToMovement(square);
+    startIndividualMovement(square);
+
+    return square;
+}
+
 
     // Try to load the image
     fabric.Image.fromURL(imagePath, (img) => {
