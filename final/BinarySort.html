@@ -88,6 +88,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
 </head>
 <body>
+
+
+<button id="muteButton">Mute</button>
+<audio id="backgroundMusic" loop></audio>
+
+    
     <div id="score">Score: 0</div>
     <div id="timer">Time: 1:30</div>
     <div id="scoreGoal">Goal: 200</div>
@@ -100,9 +106,9 @@
 </div>
 
 
-    <canvas id="myCanvas"></canvas>
+<canvas id="myCanvas"></canvas>
 
-    <script>
+<script>
 // Level selection logic
 const levelSelection = document.getElementById('levelSelection');
 const level1Button = document.getElementById('level1');
@@ -113,11 +119,34 @@ const level3Button = document.getElementById('level3');
 let waveTimer = 2000; // Time interval for waves (in milliseconds), set to 2 seconds for now
 let maxSquares = 10; // Max squares for level 1 (initial value, will change per level)
 
-// Function to start the game for a specific level
+// References to audio elements and mute button
+const backgroundMusic = document.getElementById('backgroundMusic');
+const muteButton = document.getElementById('muteButton');
+
+// Music file mapping based on levels
+const levelMusic = {
+    1: 'Powerup.mp3',
+    2: 'Rocket.mp3',
+    3: 'MX_7000.mp3'
+};
+
+// Function to play music for the selected level
+function playMusic(level) {
+    backgroundMusic.src = levelMusic[level];
+    backgroundMusic.play();
+}
+
+// Mute/unmute functionality
+muteButton.addEventListener('click', () => {
+    backgroundMusic.muted = !backgroundMusic.muted;
+    muteButton.innerText = backgroundMusic.muted ? 'Unmute' : 'Mute';
+});
+
+// Update startGame to play the appropriate music
 function startGame(level) {
     console.log(`Starting Level ${level}`);
-    levelSelection.style.display = 'none'; // Hide the level selection screen
-
+    levelSelection.style.display = 'none';
+    playMusic(level); // Play background music for the level
     // Customize game settings based on level
     const levelConfig = {
         1: { scoreGoal: 200, timer: 90, waveTimer: 2000, maxSquares: 10 },  // 10 squares max
