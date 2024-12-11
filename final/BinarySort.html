@@ -300,12 +300,31 @@ function updateScore(goal) {
         }
 
         function countSquares() {
-            return canvas.getObjects().filter(obj => obj.type === 'rect' && obj.width === 50 && obj.height === 50).length;
+            return canvas.getObjects().filter(obj => obj.type === 'rect' && obj.width === 50 && obj.height === 60).length;
         }
 
         // Stop individual movement for a square
         function stopIndividualMovement(square) {
             clearInterval(square.movementTimer);
+        }
+
+        // Function to create AI square
+        function createAISquare(color, base, x, y) {
+            const square = new fabric.Rect({
+                left: x,
+                top: y,
+                width: 50,
+                height: 60,
+                fill: color,
+                baseColor: base,
+                selectable: true,
+                hasControls: false,
+                hasBorders: false,
+            });
+
+            addSquareToMovement(square); // Add square to movement list
+            startIndividualMovement(square); // Start individual movement
+            return square;
         }
 
         // Function to create pens
@@ -426,10 +445,10 @@ function spawnSquaresFromDoorway() {
 
     // Define linked color pairs
     const colorPairs = [
-        { color: 'red', image: 'Assets/red.png' },
-        { color: 'blue', image: 'Assets/blue.png' },
-        { color: 'green', image: 'Assets/green.png' },
-        { color: 'yellow', image: 'Assets/yellow.png' }
+        { fill: 'red', base: 'red' },
+        { fill: 'blue', base: 'blue' },
+        { fill: 'limegreen', base: 'green' },
+        { fill: 'gold', base: 'yellow' }
     ];
 
     // Shuffle the color pairs array to ensure randomness
@@ -445,45 +464,39 @@ function spawnSquaresFromDoorway() {
 
     // Spawn the squares
     for (let i = 0; i < spawnCount; i++) {
-        const { color, image } = colorPairs[i];
+        const { fill, base } = colorPairs[i];
         const spawnX = doorway.left + doorway.width / 2 + Math.random() * 40 - 20; // Randomize X position a bit
         const spawnY = doorway.top + 10; // Slight offset from the top of the doorway
 
-        // Load the image for the square
-        fabric.Image.fromURL(image, (img) => {
-            img.set({
-                left: spawnX,
-                top: spawnY,
-                width: 50,  // Adjust width
-                height: 50, // Adjust height
-                selectable: true,
-                hasControls: false,
-                hasBorders: false,
-                baseColor: color,  // Use the color as a reference for base color
-            });
-
-            // Set target position for animation
-            const targetX = centerX + Math.random() * 200 - 100; // Spread horizontally
-            const targetY = centerY + Math.random() * 200 - 100; // Spread vertically
-
-            // Animate the square to the target position
-            img.animate({
-                left: targetX,
-                top: targetY
-            }, {
-                duration: 1000,
-                onChange: canvas.renderAll.bind(canvas),
-                onComplete: function () {
-                    addSquareToMovement(img); // Start square movement after animation
-                }
-            });
-
-            // Add the image to the canvas
-            canvas.add(img);
+        const square = new fabric.Rect({
+            left: spawnX,
+            top: spawnY,
+            width: 50,
+            height: 60,
+            fill: fill,
+            baseColor: base,
+            selectable: true,
+            hasControls: false,
+            hasBorders: false,
         });
+
+        const targetX = centerX + Math.random() * 200 - 100; // Spread horizontally
+        const targetY = centerY + Math.random() * 200 - 100; // Spread vertically
+
+        square.animate({
+            left: targetX,
+            top: targetY
+        }, {
+            duration: 1000,
+            onChange: canvas.renderAll.bind(canvas),
+            onComplete: function () {
+                addSquareToMovement(square); // Start square movement after animation
+            }
+        });
+
+        canvas.add(square);
     }
 }
-
 
 // Function to spawn a penalty wave of squares of the wrong color
 function spawnPenaltyWave(color) {
@@ -508,7 +521,7 @@ function spawnPenaltyWave(color) {
             left: spawnX,
             top: spawnY,
             width: 50,
-            height: 50,
+            height: 60,
             fill: fill,
             baseColor: base,
             selectable: true,
