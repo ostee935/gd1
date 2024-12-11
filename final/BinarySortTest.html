@@ -99,10 +99,34 @@
     <button id="level3">Level 3</button>
 </div>
 
+  <!-- Add audio element -->
+    <audio id="backgroundMusic" loop>
+        <source id="audioSource" src="" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
 
     <canvas id="myCanvas"></canvas>
 
     <script>
+
+          // Music element
+        const backgroundMusic = document.getElementById('backgroundMusic');
+        const audioSource = document.getElementById('audioSource');
+
+        // Function to play music
+        function playMusic(song) {
+            audioSource.src = song; // Set the song source
+            backgroundMusic.load(); // Reload the audio element to apply the new source
+            backgroundMusic.play().catch(error => console.log("Error playing music:", error));
+        }
+
+        // Function to stop music
+        function stopMusic() {
+            backgroundMusic.pause();
+            backgroundMusic.currentTime = 0; // Reset playback
+        }
+
+        
 // Level selection logic
 const levelSelection = document.getElementById('levelSelection');
 const level1Button = document.getElementById('level1');
@@ -125,11 +149,22 @@ function startGame(level) {
         3: { scoreGoal: 500, timer: 45, waveTimer: 2000, maxSquares: 20 },  // 20 squares max
     };
 
+    // Choose the song based on level
+            const songs = {
+                1: "Powerup (Level 1).mp3",
+                2: "Rocket (Level 2).mp3",
+                3: "MX 7000 (Level 3).mp3",
+            };
+
+            // Start music
+            playMusic(songs[level]);
+
     const { scoreGoal: goal, timer: time, waveTimer: levelWaveTimer, maxSquares: levelMaxSquares } = levelConfig[level];
     score = 0; // Reset score
     timer = time; // Set level-specific timer
     waveTimer = levelWaveTimer; // Set level-specific wave timer
     maxSquares = levelMaxSquares; // Set level-specific max squares
+    
 
     updateScore(goal); // Pass the current level's goal to update the score display
     updateTimer(); // Display the initial time
