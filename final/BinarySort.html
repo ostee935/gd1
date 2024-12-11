@@ -113,24 +113,6 @@ const level3Button = document.getElementById('level3');
 let waveTimer = 2000; // Time interval for waves (in milliseconds), set to 2 seconds for now
 let maxSquares = 10; // Max squares for level 1 (initial value, will change per level)
 
-// Path to the image
-    const imagePath = "Assets/yellow.png";
-
-    // Function to load and add the image
-    fabric.Image.fromURL(imagePath, function(img) {
-        if (img) {
-            img.set({
-                left: 200,  // Set the position of the image
-                top: 200,   // Set the position of the image
-                width: 100, // Optional: Resize the image
-                height: 100 // Optional: Resize the image
-            });
-            canvas.add(img); // Add the image to the canvas
-        } else {
-            console.error("Failed to load image.");
-        }
-    });
-        
 // Function to start the game for a specific level
 function startGame(level) {
     console.log(`Starting Level ${level}`);
@@ -328,7 +310,6 @@ function updateScore(goal) {
 
         // Function to create AI square
         // Function to create AI square with image or color fallback
-// Function to create AI square with image or color fallback
 function createAISquare(color, base, x, y) {
     const imagePath = `Assets/${base}.png`; // Path to the image
     const square = new fabric.Rect({
@@ -377,32 +358,6 @@ function createAISquare(color, base, x, y) {
     return square;
 }
 
-
-    // Try to load the image
-    fabric.Image.fromURL(imagePath, (img) => {
-        if (img) {
-            img.set({
-                left: square.left,
-                top: square.top,
-                width: square.width,
-                height: square.height,
-                selectable: true,
-                hasControls: false,
-                hasBorders: false,
-            });
-            canvas.remove(square); // Remove the placeholder
-            canvas.add(img); // Add the image square
-            addSquareToMovement(img); // Add to movement
-            startIndividualMovement(img); // Start movement
-        } else {
-            console.warn(`Failed to load image: ${imagePath}`);
-        }
-    });
-
-    addSquareToMovement(square); // Add placeholder to movement
-    startIndividualMovement(square); // Start placeholder movement
-    return square;
-}
 
         // Function to create pens
         function createPen(color, base, x, y) {
